@@ -1,0 +1,16 @@
+# Ransomware Defense System — Agent Dependencies
+# Install with: pip install -r agent/requirements.txt
+
+# Core HTTP client
+requests==2.32.3
+
+# File system monitoring
+watchdog==4.0.0
+
+# Process & network monitoring
+psutil==5.9.8
+
+# Windows-specific USB/WMI support
+# Uncomment on Windows:
+# wmi==1.5.1
+# pywin32==306

@@ -1,0 +1,3512 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SentinelCrypt EDR | Advanced Ransomware Defense Platform</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ----------------------------------------------------
+       1. Global Styles & Theme Variables
+       ---------------------------------------------------- */
+    :root[data-theme="dark"] {
+      --font-primary: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Colors - Modern Sleek Security Palette */
+      --bg-landing: #020408;
+      --bg-panel: #05070d;
+      --bg-card: rgba(8, 12, 22, 0.7);
+      --bg-card-hover: rgba(12, 18, 32, 0.9);
+      --bg-sidebar: #03050a;
+      
+      --border-glass: rgba(6, 182, 212, 0.08);
+      --border-glass-glow: rgba(6, 182, 212, 0.3);
+      
+      --text-main: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+
+      /* Accent Colors with Glow capability */
+      --color-primary: #00f0ff;      /* Hyper Cyan */
+      --color-primary-glow: rgba(0, 240, 255, 0.3);
+      --color-accent: #a855f7;       /* Cyber Purple */
+      --color-accent-glow: rgba(168, 85, 247, 0.25);
+      
+      --color-success: #10b981;      /* Emerald */
+      --color-warning: #f59e0b;      /* Amber */
+      --color-danger: #ef4444;       /* Rose */
+      
+      --shadow-neon: 0 0 18px var(--color-primary-glow);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      --grid-line-color: rgba(6, 182, 212, 0.05);
+    }
+
+    :root[data-theme="light"] {
+      --font-primary: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Colors - Light Theme Security Palette */
+      --bg-landing: #f3f4f6;
+      --bg-panel: #ffffff;
+      --bg-card: rgba(255, 255, 255, 0.8);
+      --bg-card-hover: rgba(243, 244, 246, 0.95);
+      --bg-sidebar: #f9fafb;
+      
+      --border-glass: rgba(0, 0, 0, 0.08);
+      --border-glass-glow: rgba(2, 132, 199, 0.25);
+      
+      --text-main: #111827;
+      --text-secondary: #4b5563;
+      --text-muted: #9ca3af;
+
+      /* Accent Colors */
+      --color-primary: #0284c7;      /* Ocean Blue */
+      --color-primary-glow: rgba(2, 132, 199, 0.2);
+      --color-accent: #7c3aed;       /* Deep Violet */
+      --color-accent-glow: rgba(124, 58, 237, 0.15);
+      
+      --color-success: #16a34a;
+      --color-warning: #d97706;
+      --color-danger: #dc2626;
+      
+      --shadow-neon: 0 4px 12px rgba(2, 132, 199, 0.15);
+      --transition: all 0.25s ease-in-out;
+      
+      --grid-line-color: rgba(0, 0, 0, 0.03);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background-color: var(--bg-landing);
+      color: var(--text-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-glass);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-primary);
+    }
+
+    /* Page Switcher Classes */
+    .page-section {
+      display: none;
+      min-height: 100vh;
+    }
+    .page-section.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ----------------------------------------------------
+       2. SVG Grid Background & Global Keyframes
+       ---------------------------------------------------- */
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, var(--grid-line-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line-color) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Scanline removed by user request */
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+
+    /* ----------------------------------------------------
+       3. Common UI Utility Components
+       ---------------------------------------------------- */
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      padding: 24px;
+      transition: var(--transition);
+      position: relative;
+    }
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 12px;
+      height: 12px;
+      border-top: 2px solid var(--color-primary);
+      border-left: 2px solid var(--color-primary);
+      pointer-events: none;
+      opacity: 0.35;
+      transition: var(--transition);
+    }
+    .glass-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 12px;
+      height: 12px;
+      border-bottom: 2px solid var(--color-primary);
+      border-right: 2px solid var(--color-primary);
+      pointer-events: none;
+      opacity: 0.35;
+      transition: var(--transition);
+    }
+    .glass-card:hover {
+      border-color: var(--border-glass-glow);
+      box-shadow: var(--shadow-neon);
+      transform: translateY(-2px);
+    }
+    .glass-card:hover::before, .glass-card:hover::after {
+      opacity: 0.9;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 8px var(--color-primary-glow);
+    }
+
+    .btn-glow {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      color: #ffffff;
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow-neon);
+      transition: var(--transition);
+    }
+    .btn-glow:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.1);
+      box-shadow: 0 0 25px var(--color-primary-glow);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glass);
+      color: var(--text-main);
+      font-weight: 500;
+      padding: 10px 24px;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--text-secondary);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .form-input {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text-main);
+      font-size: 15px;
+      transition: var(--transition);
+      width: 100%;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 10px var(--color-primary-glow);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    /* Badges & Pills */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      gap: 4px;
+    }
+    .badge-critical { background: rgba(239, 68, 68, 0.15); color: var(--color-danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-high { background: rgba(245, 158, 11, 0.15); color: var(--color-warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-medium { background: rgba(168, 85, 247, 0.15); color: var(--color-accent); border: 1px solid rgba(168, 85, 247, 0.3); }
+    .badge-low { background: rgba(16, 185, 129, 0.15); color: var(--color-success); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .pill-active { background: rgba(239, 68, 68, 0.1); color: var(--color-danger); }
+    .pill-contained { background: rgba(16, 185, 129, 0.1); color: var(--color-success); }
+    .pill-resolved { background: rgba(6, 182, 212, 0.1); color: var(--color-primary); }
+
+    /* Tables */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    .custom-table th {
+      padding: 14px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border-glass);
+      letter-spacing: 0.05em;
+    }
+    .custom-table td {
+      padding: 16px;
+      font-size: 14px;
+      color: var(--text-main);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .custom-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* ----------------------------------------------------
+       4. Navigation Bar
+       ---------------------------------------------------- */
+    .header-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(9, 13, 22, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-glass);
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .logo-group:hover .logo-shield {
+      transform: scale(1.08);
+      box-shadow: 0 0 22px var(--color-primary-glow);
+    }
+    .logo-shield {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-primary);
+      box-shadow: var(--shadow-neon);
+      transition: var(--transition);
+    }
+    .logo-text {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-main);
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-item {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+    .nav-item:hover {
+      color: var(--color-primary);
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .theme-toggle-btn {
+      background: transparent;
+      border: 1px solid var(--border-glass);
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: var(--transition);
+    }
+    .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--color-primary);
+    }
+
+    /* Navbar User Chip */
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-glass);
+      border-radius: 9999px;
+    }
+    .avatar-initials {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .user-chip-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* ----------------------------------------------------
+       5. Landing Page Layout
+       ---------------------------------------------------- */
+    .hero-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 80px 24px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      align-items: center;
+      gap: 60px;
+      position: relative;
+    }
+    @media (max-width: 1024px) {
+      .hero-container {
+        grid-template-columns: 1fr;
+        padding: 50px 24px;
+        text-align: center;
+      }
+    }
+
+    .badge-hero {
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      color: var(--color-primary);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .hero-title {
+      font-size: clamp(36px, 5vw, 68px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      margin-bottom: 20px;
+      background: linear-gradient(to right, var(--text-main), var(--text-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      font-size: clamp(16px, 2vw, 19px);
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 36px;
+      max-width: 580px;
+    }
+    @media (max-width: 1024px) {
+      .hero-desc { margin: 0 auto 36px auto; }
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    @media (max-width: 1024px) {
+      .hero-actions { justify-content: center; }
+    }
+
+    /* Terminal Terminal Style Widget */
+    .terminal-widget {
+      font-family: var(--font-mono);
+      background: #04080f;
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    .terminal-header {
+      background: #0f172a;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .terminal-dot.red { background: #ef4444; }
+    .terminal-dot.yellow { background: #f59e0b; }
+    .terminal-dot.green { background: #10b981; }
+    .terminal-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .terminal-body {
+      padding: 20px;
+      height: 340px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: #a855f7; /* Default cyber code purple */
+    }
+    .terminal-line {
+      white-space: pre-wrap;
+    }
+    .terminal-line.success { color: var(--color-success); }
+    .terminal-line.warning { color: var(--color-warning); }
+    .terminal-line.danger { color: var(--color-danger); font-weight: 700; }
+    .terminal-line.info { color: var(--color-primary); }
+
+    /* Stats Bar Section */
+    .stats-section {
+      border-y: 1px solid var(--border-glass);
+      background: rgba(255, 255, 255, 0.01);
+      width: 100%;
+    }
+    .stats-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 60px 24px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+      text-align: center;
+    }
+    @media (max-width: 768px) {
+      .stats-container { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .stats-container { grid-template-columns: 1fr; }
+    }
+    .stat-number {
+      font-size: clamp(36px, 4vw, 52px);
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .stat-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Feature Grid Section */
+    .features-section {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 100px 24px;
+    }
+    .section-header {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto 60px auto;
+    }
+    .section-title {
+      font-size: clamp(28px, 3.5vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+    .section-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+    }
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
+    .feature-icon-wrapper {
+      background: rgba(6, 182, 212, 0.1);
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-primary);
+      margin-bottom: 20px;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+    .feature-title {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .feature-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Trust / Compliance Section */
+    .trust-section {
+      background: rgba(0, 0, 0, 0.15);
+      border-top: 1px solid var(--border-glass);
+      border-bottom: 1px solid var(--border-glass);
+      width: 100%;
+    }
+    .trust-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 50px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+    .trust-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 50px;
+    }
+    .compliance-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.55;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .compliance-badge:hover {
+      opacity: 1;
+    }
+    .compliance-badge svg {
+      width: 44px;
+      height: 44px;
+      color: var(--text-main);
+    }
+    .badge-name {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      width: 100%;
+      padding: 100px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .cta-card {
+      max-width: 1000px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      padding: 60px 40px;
+      border: 1px solid var(--border-glass);
+      border-radius: 32px;
+      background: radial-gradient(circle at center, rgba(6, 182, 212, 0.1) 0%, transparent 70%), rgba(9, 13, 22, 0.7);
+    }
+    .cta-glow-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 60%);
+      pointer-events: none;
+      animation: pulseGlow 6s ease-in-out infinite;
+    }
+    .cta-title {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 800;
+      margin-bottom: 20px;
+      letter-spacing: -0.03em;
+    }
+    .cta-desc {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 36px auto;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    .main-footer {
+      border-top: 1px solid var(--border-glass);
+      background: rgba(0, 0, 0, 0.2);
+      width: 100%;
+    }
+    .footer-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 60px 24px;
+      display: grid;
+      grid-template-columns: 1.5fr repeat(3, 1fr);
+      gap: 40px;
+    }
+    @media (max-width: 768px) {
+      .footer-container { grid-template-columns: 1fr; text-align: center; }
+    }
+    .footer-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .footer-brand-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      max-width: 300px;
+      line-height: 1.6;
+    }
+    @media (max-width: 768px) {
+      .footer-brand-desc { margin: 0 auto; }
+    }
+    .footer-links-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .footer-col-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .footer-links-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .footer-link {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .footer-link:hover {
+      color: var(--color-primary);
+    }
+
+    /* ----------------------------------------------------
+       6. Login / Register Forms Layout
+       ---------------------------------------------------- */
+    .auth-page-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 24px;
+      position: relative;
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 480px;
+      padding: 40px;
+      position: relative;
+      z-index: 10;
+    }
+    .auth-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .auth-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .auth-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .auth-alert {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--color-danger);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .password-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .password-toggle-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .password-toggle-btn:hover {
+      color: var(--text-secondary);
+    }
+    .auth-hint {
+      margin-top: 16px;
+      padding: 12px;
+      background: rgba(6, 182, 212, 0.05);
+      border: 1px dashed rgba(6, 182, 212, 0.2);
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .auth-hint strong {
+      color: var(--color-primary);
+    }
+
+    /* ----------------------------------------------------
+       7. Authenticated Dashboard Layout
+       ---------------------------------------------------- */
+    .dashboard-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 73px); /* Subtract Header height */
+      overflow: hidden;
+    }
+    .sidebar {
+      width: 260px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-glass);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .sidebar-menu {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sidebar-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 18px 0 6px 12px;
+    }
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .sidebar-item:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .sidebar-item.active {
+      color: var(--color-primary);
+      background: var(--bg-panel);
+      box-shadow: inset 3px 0 0 var(--color-primary);
+      border: 1px solid var(--border-glass);
+    }
+    
+    .dashboard-main {
+      flex: 1;
+      background: var(--bg-panel);
+      overflow-y: auto;
+      padding: 32px;
+      position: relative;
+    }
+
+    /* Dashboard Panels Switcher */
+    .dashboard-panel {
+      display: none;
+      flex-direction: column;
+      gap: 30px;
+      animation: fadeIn 0.4s ease-out;
+    }
+    .dashboard-panel.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-glass);
+      padding-bottom: 18px;
+    }
+    .panel-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .panel-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Overview Grid & Metric Cards */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 1024px) {
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .metrics-grid { grid-template-columns: 1fr; }
+    }
+    
+    .metric-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .metric-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .metric-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .metric-value {
+      font-size: 28px;
+      font-weight: 800;
+    }
+    .metric-trend {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .metric-trend.up { color: var(--color-danger); }
+    .metric-trend.down { color: var(--color-success); }
+    
+    .metric-icon-wrapper {
+      background: rgba(255, 255, 255, 0.04);
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-glass);
+      color: var(--color-primary);
+    }
+
+    /* Overview Details Panel Layout */
+    .overview-details-grid {
+      display: grid;
+      grid-template-columns: 1.8fr 1fr;
+      gap: 30px;
+    }
+    @media (max-width: 1024px) {
+      .overview-details-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Progress bars */
+    .progress-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .progress-bar-bg {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-glass);
+      height: 8px;
+      border-radius: 9999px;
+      overflow: hidden;
+      width: 100%;
+    }
+    .progress-bar-fill {
+      background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 0.8s ease-out;
+    }
+
+    /* Live Activity Feed list */
+    .feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .feed-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 13.5px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .feed-item:last-child {
+      border: none;
+      padding: 0;
+    }
+    .feed-icon {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .feed-text-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .feed-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ----------------------------------------------------
+       8. Interactive Scanner Layout
+       ---------------------------------------------------- */
+    .scanner-controls {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      align-items: flex-end;
+      gap: 20px;
+    }
+    @media (max-width: 768px) {
+      .scanner-controls { grid-template-columns: 1fr; }
+    }
+    .scanner-terminal {
+      background: #020617;
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      height: 250px;
+      overflow-y: auto;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: var(--color-primary);
+    }
+
+    /* ----------------------------------------------------
+       9. Toggle Switch Configuration Rows
+       ---------------------------------------------------- */
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-glass);
+    }
+    .settings-row:last-child {
+      border: none;
+    }
+    .settings-row-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 80%;
+    }
+    .settings-row-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .settings-row-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    /* Toggle Switch Switch styling */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-glass);
+      border-radius: 34px;
+      transition: .3s;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text-main);
+      border-radius: 50%;
+      transition: .3s;
+    }
+    input:checked + .slider {
+      background-color: var(--color-primary);
+    }
+    input:checked + .slider:before {
+      transform: translateX(20px);
+      background-color: #ffffff;
+    }
+
+    /* Dropdown select option styling fix for dark mode */
+    select.form-input option {
+      background-color: var(--bg-panel);
+      color: var(--text-main);
+    }
+
+    /* Ambient Glow Background System */
+    .background-glow-container {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(140px);
+      opacity: 0.12;
+      pointer-events: none;
+      animation: floatGlow 20s infinite ease-in-out alternate;
+    }
+    .circle-1 {
+      background: var(--color-primary);
+      width: 600px;
+      height: 600px;
+      top: -150px;
+      left: -150px;
+      animation-duration: 25s;
+    }
+    .circle-2 {
+      background: var(--color-accent);
+      width: 700px;
+      height: 700px;
+      bottom: -200px;
+      right: -150px;
+      animation-duration: 35s;
+      animation-delay: -7s;
+    }
+    .circle-3 {
+      background: #0284c7;
+      width: 450px;
+      height: 450px;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-duration: 28s;
+      animation-delay: -14s;
+    }
+    
+    @keyframes floatGlow {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+      50% {
+        transform: translate(60px, -60px) scale(1.1);
+      }
+      100% {
+        transform: translate(-30px, 40px) scale(0.95);
+      }
+    }
+
+    /* Hide custom cursor elements by default (e.g. touch/mobile) */
+    .custom-cursor, .custom-cursor-dot {
+      display: none;
+    }
+    
+    @media (pointer: fine) {
+      body {
+        cursor: none !important;
+      }
+      a, button, select, input, textarea, .sidebar-item, .nav-item, .switch, .slider, .compliance-badge, .logo-group {
+        cursor: none !important;
+      }
+      .custom-cursor {
+        display: block;
+        width: 32px;
+        height: 32px;
+        border: 2px solid var(--color-primary-glow);
+        border-radius: 50%;
+        position: fixed;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 99999;
+        transition: width 0.15s ease-out, height 0.15s ease-out, background-color 0.15s ease-out, border-color 0.15s ease-out;
+      }
+      .custom-cursor-dot {
+        display: block;
+        width: 6px;
+        height: 6px;
+        background-color: var(--color-primary);
+        border-radius: 50%;
+        position: fixed;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 100000;
+        box-shadow: 0 0 10px var(--color-primary-glow);
+        transition: transform 0.15s ease-out, background-color 0.15s ease-out;
+      }
+      .custom-cursor.hover {
+        width: 48px;
+        height: 48px;
+        border-color: var(--color-accent);
+        background-color: rgba(168, 85, 247, 0.08);
+      }
+      .custom-cursor-dot.hover {
+        background-color: var(--color-accent);
+        transform: translate(-50%, -50%) scale(1.6);
+        box-shadow: 0 0 12px var(--color-accent-glow);
+      }
+    }
+
+    /* Cyber Radar & Concentric Tech Target circles */
+    .cyber-radar {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 750px;
+      height: 750px;
+      border: 1px dashed rgba(0, 240, 255, 0.08);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+      animation: rotateRadar 40s linear infinite;
+    }
+    .cyber-radar::before {
+      content: '';
+      position: absolute;
+      inset: 60px;
+      border: 1px solid rgba(0, 240, 255, 0.03);
+      border-radius: 50%;
+    }
+    .cyber-radar::after {
+      content: '';
+      position: absolute;
+      inset: 180px;
+      border: 1.5px dashed rgba(168, 85, 247, 0.05);
+      border-radius: 50%;
+      animation: rotateRadar 20s linear infinite reverse;
+    }
+    .cyber-radar-inner {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 350px;
+      height: 350px;
+      border: 1px double rgba(0, 240, 255, 0.04);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    @keyframes rotateRadar {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Background Layer with Ambient Glows & Cyber Radar rings -->
+  <div class="background-glow-container">
+    <div class="glow-bg-circle circle-1"></div>
+    <div class="glow-bg-circle circle-2"></div>
+    <div class="glow-bg-circle circle-3"></div>
+    <div class="cyber-radar"></div>
+    <div class="cyber-radar-inner"></div>
+  </div>
+  <div class="grid-bg"></div>
+
+  <!-- ----------------------------------------------------
+       Navigation Header Bar
+       ---------------------------------------------------- -->
+  <header class="header-nav">
+    <div class="nav-container">
+      
+      <!-- Brand Logo -->
+      <a class="logo-group" onclick="navigation.goToLanding()">
+        <div class="logo-shield">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="url(#shieldGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00f0ff" />
+                <stop offset="100%" stop-color="#a855f7" />
+              </linearGradient>
+            </defs>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="url(#shieldGrad)" stroke-width="2"/>
+            <path d="M12 11a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z" fill="url(#shieldGrad)" opacity="0.3"/>
+            <path d="M12 14v3" stroke="url(#shieldGrad)"/>
+          </svg>
+        </div>
+        <span class="logo-text">SENTINELCRYPT EDR</span>
+      </a>
+
+      <!-- Navigation Links (Public state) -->
+      <ul class="nav-links" id="nav-links-public">
+        <li><a class="nav-item" onclick="navigation.goToLanding()">Home</a></li>
+        <li><a class="nav-item" href="#features">Features</a></li>
+        <li><a class="nav-item" href="#compliance">Compliance</a></li>
+      </ul>
+
+      <!-- Action items -->
+      <div class="nav-actions">
+        <!-- Theme Toggle -->
+        <button class="theme-toggle-btn" onclick="theme.toggle()" title="Toggle Theme">
+          <svg id="theme-toggle-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+        </button>
+
+        <!-- Dynamic Auth State items -->
+        <div id="nav-auth-state" style="display: flex; align-items: center; gap: 16px;">
+          <!-- Managed via Javascript -->
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ----------------------------------------------------
+       PAGE: Landing Page
+       ---------------------------------------------------- -->
+  <main id="page-landing" class="page-section active">
+    
+    <!-- Hero Block -->
+    <div class="hero-container">
+      
+      <div class="hero-content-col">
+        <div class="badge-hero">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          SOC-Engine v2.4 Active
+        </div>
+        <h1 class="hero-title">Fluid Ransomware Isolation</h1>
+        <p class="hero-desc">
+          Defend organization endpoints with zero-day honeypot decoys, heuristic log behavior profiles, and real-time automated network containment.
+        </p>
+        <div class="hero-actions">
+          <button class="btn-glow" onclick="navigation.goToRegister()">
+            Get Started CTA
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+          <button class="btn-secondary" onclick="navigation.goToLogin()">Sign In</button>
+        </div>
+      </div>
+
+      <!-- Typewriter terminal widget -->
+      <div class="terminal-widget">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+          </div>
+          <div class="terminal-title">Active Log Containment</div>
+          <div></div>
+        </div>
+        <div class="terminal-body" id="landing-terminal-body">
+          <!-- Typewriter lines append here -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Stats Bar -->
+    <section class="stats-section">
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-number">99.98%</div>
+          <div class="stat-label">Accuracy Rating</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">&lt; 1.5s</div>
+          <div class="stat-label">Response Time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">12.4K+</div>
+          <div class="stat-label">Threats Blocked</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">480+</div>
+          <div class="stat-label">Orgs Protected</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features section -->
+    <section class="features-section" id="features">
+      <div class="section-header">
+        <h2 class="section-title">Automated Ransomware Killswitch</h2>
+        <p class="section-subtitle">Real-time isolation layer built to detect encrypting behaviors and recover file systems immediately.</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="glass-card">
+          <div class="feature-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">Behavioral Heuristics</h3>
+          <p class="feature-desc">Analyzes endpoint process entropy spikes, shadow copy deletions, and unauthorized registry edits instantly.</p>
+        </div>
+        <!-- Feature 2 -->
+        <div class="glass-card">
+          <div class="feature-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="22" y1="12" x2="18" y2="12"></line>
+              <line x1="6" y1="12" x2="2" y2="12"></line>
+              <line x1="12" y1="6" x2="12" y2="2"></line>
+              <line x1="12" y1="22" x2="12" y2="18"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Honeypot Deception</h3>
+          <p class="feature-desc">Deploys decoy files across directories to lure ransomware agents, triggering an immediate process shutdown.</p>
+        </div>
+        <!-- Feature 3 -->
+        <div class="glass-card">
+          <div class="feature-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="9" y1="3" x2="9" y2="21"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Process Isolation</h3>
+          <p class="feature-desc">Revokes network privileges and terminates parent processes of threats within milliseconds of suspicious activity.</p>
+        </div>
+        <!-- Feature 4 -->
+        <div class="glass-card">
+          <div class="feature-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+              <path d="M12 2a10 10 0 0 1 10 10h-10V2z"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">Threat Intel</h3>
+          <p class="feature-desc">Syncs feed indicators of compromise (IOCs) with real-time definitions database update channels.</p>
+        </div>
+        <!-- Feature 5 -->
+        <div class="glass-card">
+          <div class="feature-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Backup Guard</h3>
+          <p class="feature-desc">Automates secure air-gapped snapshots that are completely shielded from lateral encrypting sweeps.</p>
+        </div>
+        <!-- Feature 6 -->
+        <div class="glass-card">
+          <div class="feature-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <h3 class="feature-title">Incident Reporting</h3>
+          <p class="feature-desc">Generates professional PDF audit files detailing ransomware storylines, endpoints, and threat families.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trust / Compliance Badges -->
+    <section class="trust-section" id="compliance">
+      <div class="trust-container">
+        <h3 class="trust-title">Compliant & Certified Security Architecture</h3>
+        <div class="badges-row">
+          <!-- SOC 2 -->
+          <div class="compliance-badge" title="SOC 2 Type II Certified">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 11 2 2 4-4"/>
+            </svg>
+            <span class="badge-name">SOC 2 TYPE II</span>
+          </div>
+          <!-- ISO 27001 -->
+          <div class="compliance-badge" title="ISO 27001 Information Security Management">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span class="badge-name">ISO 27001</span>
+          </div>
+          <!-- GDPR -->
+          <div class="compliance-badge" title="GDPR Compliant">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            </svg>
+            <span class="badge-name">GDPR</span>
+          </div>
+          <!-- HIPAA -->
+          <div class="compliance-badge" title="HIPAA Security Rule Standards">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            <span class="badge-name">HIPAA</span>
+          </div>
+          <!-- FedRAMP -->
+          <div class="compliance-badge" title="FedRAMP Compliant System">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+              <path d="M7 12h10M12 7v10"/>
+            </svg>
+            <span class="badge-name">FedRAMP</span>
+          </div>
+          <!-- CERT-In -->
+          <div class="compliance-badge" title="CERT-In Security Framework Standards">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M12 8v8M8 12h8"/>
+            </svg>
+            <span class="badge-name">CERT-IN</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+      <div class="cta-card">
+        <div class="cta-glow-circle"></div>
+        <h2 class="cta-title">Upgrade to SentinelCrypt EDR Today</h2>
+        <p class="cta-desc">Shield your host endpoints, manage user roles, audit systems logs, and lock down malicious encrypting behaviors before they hit.</p>
+        <button class="btn-glow" onclick="navigation.goToRegister()">Create Free Account</button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <a class="logo-group" onclick="navigation.goToLanding()">
+            <div class="logo-shield">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="url(#shieldGradFooter)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                  <linearGradient id="shieldGradFooter" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#00f0ff" />
+                    <stop offset="100%" stop-color="#a855f7" />
+                  </linearGradient>
+                </defs>
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="url(#shieldGradFooter)" stroke-width="2"/>
+                <path d="M12 11a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z" fill="url(#shieldGradFooter)" opacity="0.3"/>
+                <path d="M12 14v3" stroke="url(#shieldGradFooter)"/>
+              </svg>
+            </div>
+            <span class="logo-text">SENTINELCRYPT EDR</span>
+          </a>
+          <p class="footer-brand-desc">Fluid security sweeps, live incident monitors, and backup guards for modern security infrastructures.</p>
+        </div>
+        <div class="footer-links-col">
+          <h4 class="footer-col-title">Platform</h4>
+          <ul class="footer-links-list">
+            <li><a href="#features" class="footer-link">Core Features</a></li>
+            <li><a href="#compliance" class="footer-link">Compliance Badges</a></li>
+            <li><a class="footer-link" onclick="navigation.goToLogin()">Dashboard login</a></li>
+          </ul>
+        </div>
+        <div class="footer-links-col">
+          <h4 class="footer-col-title">Resources</h4>
+          <ul class="footer-links-list">
+            <li><a href="#" class="footer-link">Documentation</a></li>
+            <li><a href="#" class="footer-link">Security Policies</a></li>
+            <li><a href="#" class="footer-link">Typewriter Console</a></li>
+          </ul>
+        </div>
+        <div class="footer-links-col">
+          <h4 class="footer-col-title">Legal</h4>
+          <ul class="footer-links-list">
+            <li><a href="#" class="footer-link">Privacy Policy</a></li>
+            <li><a href="#" class="footer-link">Terms of Service</a></li>
+            <li><a href="#" class="footer-link">Audit Guidelines</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- ----------------------------------------------------
+       PAGE: Login Form Page
+       ---------------------------------------------------- -->
+  <main id="page-login" class="page-section">
+    <div class="auth-page-wrapper">
+      <div class="glass-card auth-card">
+        
+        <div class="auth-header">
+          <div class="auth-logo-wrapper" style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <div class="logo-shield" style="width: 48px; height: 48px; border-radius: 12px; border-color: rgba(0, 240, 255, 0.25);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#shieldGradLogin)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                  <linearGradient id="shieldGradLogin" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#00f0ff" />
+                    <stop offset="100%" stop-color="#a855f7" />
+                  </linearGradient>
+                </defs>
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="url(#shieldGradLogin)" stroke-width="2"/>
+                <path d="M12 11a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z" fill="url(#shieldGradLogin)" opacity="0.3"/>
+                <path d="M12 14v3" stroke="url(#shieldGradLogin)"/>
+              </svg>
+            </div>
+          </div>
+          <h2 class="auth-title">Welcome Back</h2>
+          <p class="auth-subtitle">Sign in to access your ransomware defense console</p>
+        </div>
+
+        <div id="login-alert" class="auth-alert hidden"></div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="login-email" class="form-input" placeholder="name@organization.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="login-password" class="form-input" placeholder="••••••••">
+            <button class="password-toggle-btn" onclick="auth.togglePasswordVisibility('login-password')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button class="btn-glow" style="width: 100%; margin-top: 10px;" onclick="auth.login()">
+          Sign In
+        </button>
+
+        <div style="text-align: center; margin-top: 20px; font-size: 14px;">
+          <span style="color: var(--text-secondary);">Don't have an account?</span>
+          <a style="color: var(--color-primary); cursor: pointer; font-weight: 600;" onclick="navigation.goToRegister()">Register here</a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ----------------------------------------------------
+       PAGE: Register Form Page
+       ---------------------------------------------------- -->
+  <main id="page-register" class="page-section">
+    <div class="auth-page-wrapper">
+      <div class="glass-card auth-card">
+        
+        <div class="auth-header">
+          <div class="auth-logo-wrapper" style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <div class="logo-shield" style="width: 48px; height: 48px; border-radius: 12px; border-color: rgba(0, 240, 255, 0.25);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#shieldGradRegister)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                  <linearGradient id="shieldGradRegister" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#00f0ff" />
+                    <stop offset="100%" stop-color="#a855f7" />
+                  </linearGradient>
+                </defs>
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="url(#shieldGradRegister)" stroke-width="2"/>
+                <path d="M12 11a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z" fill="url(#shieldGradRegister)" opacity="0.3"/>
+                <path d="M12 14v3" stroke="url(#shieldGradRegister)"/>
+              </svg>
+            </div>
+          </div>
+          <h2 class="auth-title">Create Account</h2>
+          <p class="auth-subtitle">Register your organization and deploy SentinelCrypt EDR agent</p>
+        </div>
+
+        <div id="register-alert" class="auth-alert hidden"></div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input type="text" id="register-first-name" class="form-input" placeholder="Alex">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input type="text" id="register-last-name" class="form-input" placeholder="Carter">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Work Email</label>
+          <input type="email" id="register-email" class="form-input" placeholder="alex@company.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Organization</label>
+          <input type="text" id="register-org" class="form-input" placeholder="SentinelCrypt EDR Labs">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="register-password" class="form-input" placeholder="••••••••">
+            <button class="password-toggle-btn" onclick="auth.togglePasswordVisibility('register-password')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted);">Must contain min 8 chars, 1 uppercase, and 1 number.</span>
+        </div>
+
+        <button class="btn-glow" style="width: 100%; margin-top: 10px;" onclick="auth.register()">
+          Deploy SentinelCrypt EDR
+        </button>
+
+        <div style="text-align: center; margin-top: 20px; font-size: 14px;">
+          <span style="color: var(--text-secondary);">Already registered?</span>
+          <a style="color: var(--color-primary); cursor: pointer; font-weight: 600;" onclick="navigation.goToLogin()">Log in</a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ----------------------------------------------------
+       PAGE: Authenticated Dashboard Console
+       ---------------------------------------------------- -->
+  <main id="page-dashboard" class="page-section">
+    <div class="dashboard-container">
+      
+      <!-- Dashboard Sidebar Navigation -->
+      <aside class="sidebar">
+        <ul class="sidebar-menu">
+          
+          <li class="sidebar-label">Operations</li>
+          <li class="sidebar-item active" id="sb-overview" onclick="navigation.switchPanel('overview')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            Overview
+          </li>
+          <li class="sidebar-item" id="sb-threats" onclick="navigation.switchPanel('threats')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            Threats
+          </li>
+          <li class="sidebar-item" id="sb-scanner" onclick="navigation.switchPanel('scanner')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Scanner
+          </li>
+          <li class="sidebar-item" id="sb-activity" onclick="navigation.switchPanel('activity')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            Activity Log
+          </li>
+
+          <li class="sidebar-label">Infrastructure</li>
+          <li class="sidebar-item" id="sb-endpoints" onclick="navigation.switchPanel('endpoints')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
+            Endpoints
+          </li>
+          <li class="sidebar-item" id="sb-backups" onclick="navigation.switchPanel('backups')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Backups
+          </li>
+          <li class="sidebar-item" id="sb-intel" onclick="navigation.switchPanel('intel')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="2" x2="12" y2="6"></line>
+              <line x1="12" y1="18" x2="12" y2="22"></line>
+              <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+              <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+              <line x1="2" y1="12" x2="6" y2="12"></line>
+              <line x1="18" y1="12" x2="22" y2="12"></line>
+              <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+              <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+            </svg>
+            Threat Intel
+          </li>
+
+          <!-- Admin Panels Section (Admin-only Toggle) -->
+          <span id="sb-admin-section" style="display: none;">
+            <li class="sidebar-label">Administration</li>
+            <li class="sidebar-item" id="sb-users" onclick="navigation.switchPanel('users')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              User Management
+            </li>
+            <li class="sidebar-item" id="sb-audit" onclick="navigation.switchPanel('audit')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Audit Log
+            </li>
+          </span>
+
+          <li class="sidebar-label">Configuration</li>
+          <li class="sidebar-item" id="sb-settings" onclick="navigation.switchPanel('settings')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            Settings
+          </li>
+
+        </ul>
+      </aside>
+
+      <!-- Dashboard Workspace Frame -->
+      <section class="dashboard-main">
+
+        <!-- PANEL: Overview -->
+        <div class="dashboard-panel active" id="panel-overview">
+          
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Console Overview</h2>
+              <p class="panel-desc">Real-time status updates and threat indicators</p>
+            </div>
+          </div>
+
+          <!-- Metrics grid -->
+          <div class="metrics-grid">
+            <div class="glass-card metric-card">
+              <div class="metric-info">
+                <span class="metric-title">Critical Threats</span>
+                <span class="metric-value" id="overview-metric-critical">0</span>
+                <span class="metric-trend up">
+                  ▲ 14% vs avg
+                </span>
+              </div>
+              <div class="metric-icon-wrapper" style="color: var(--color-danger);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="glass-card metric-card">
+              <div class="metric-info">
+                <span class="metric-title">Isolated Hosts</span>
+                <span class="metric-value" id="overview-metric-isolated">0</span>
+                <span class="metric-trend down">
+                  ▼ Active hold
+                </span>
+              </div>
+              <div class="metric-icon-wrapper" style="color: var(--color-warning);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                  <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                </svg>
+              </div>
+            </div>
+            <div class="glass-card metric-card">
+              <div class="metric-info">
+                <span class="metric-title">Backup Integrity</span>
+                <span class="metric-value">99.9%</span>
+                <span class="metric-trend down" style="color: var(--color-success);">
+                  ● Air-gapped
+                </span>
+              </div>
+              <div class="metric-icon-wrapper" style="color: var(--color-success);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="glass-card metric-card">
+              <div class="metric-info">
+                <span class="metric-title">Active Decoys</span>
+                <span class="metric-value">1,240</span>
+                <span class="metric-trend up" style="color: var(--color-primary);">
+                  ▲ Deploy ok
+                </span>
+              </div>
+              <div class="metric-icon-wrapper" style="color: var(--color-accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detail row splitting recent threats and live log / coverage -->
+          <div class="overview-details-grid">
+            
+            <div class="glass-card">
+              <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 700;">Recent Security Incidents</h3>
+              <div class="table-container">
+                <table class="custom-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Family</th>
+                      <th>Endpoint</th>
+                      <th>Severity</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overview-threats-tbody">
+                    <!-- Dynamic rendering -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="glass-card style-overview-sidebar" style="display: flex; flex-direction: column; gap: 30px;">
+              <div>
+                <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 700;">Agent Defense Coverage</h3>
+                
+                <div class="progress-group">
+                  <div class="progress-header">
+                    <span>Heuristics Sweeper</span>
+                    <span>100%</span>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: 100%;"></div>
+                  </div>
+                </div>
+                
+                <div class="progress-group">
+                  <div class="progress-header">
+                    <span>Registry Watcher</span>
+                    <span>88%</span>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: 88%;"></div>
+                  </div>
+                </div>
+
+                <div class="progress-group">
+                  <div class="progress-header">
+                    <span>Deception Honey Files</span>
+                    <span>95%</span>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: 95%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 700;">Live Feed Monitor</h3>
+                <div class="feed-list" id="overview-feed-list">
+                  <!-- Event Feed elements -->
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- PANEL: Threats -->
+        <div class="dashboard-panel" id="panel-threats">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Threat Incidents</h2>
+              <p class="panel-desc">Manage ransomware containment actions and logs</p>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="table-container">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Threat ID</th>
+                    <th>Family</th>
+                    <th>Target Host</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                    <th>Logged At</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="threats-table-body">
+                  <!-- Managed via javascript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL: Scanner -->
+        <div class="dashboard-panel" id="panel-scanner">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Endpoint Scanner</h2>
+              <p class="panel-desc">Perform heuristic validation and scan hosts for indicators of ransomware</p>
+            </div>
+          </div>
+
+          <div class="glass-card scanner-controls">
+            <div class="form-group">
+              <label class="form-label">Scan Path</label>
+              <input type="text" id="scan-path" class="form-input" value="C:\Users\Admin\AppData\Local\Temp">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Scan Target Type</label>
+              <select id="scan-type" class="form-input">
+                <option value="quick">Quick Heuristics (Spike Check)</option>
+                <option value="deep">Full Registry & Volume Check</option>
+                <option value="deception">Decoy Integrity Validation</option>
+              </select>
+            </div>
+            <button class="btn-glow" style="margin-bottom: 20px; justify-content: center;" onclick="scanner.startScan()">
+              Start System Sweep
+            </button>
+          </div>
+
+          <div class="glass-card">
+            <h3 style="font-size: 16px; margin-bottom: 16px; font-weight: 700;">Live Sweep Console Output</h3>
+            <div class="scanner-terminal" id="scanner-terminal-log">
+              [SYSTEM] Ready for system sweep sweep execution. Select paths and parameters to begin...
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h3 style="font-size: 16px; margin-bottom: 16px; font-weight: 700;">Sweep Reports History</h3>
+            <div class="table-container">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Scan ID</th>
+                    <th>Date</th>
+                    <th>Sweep Path</th>
+                    <th>Checked Files</th>
+                    <th>Result</th>
+                  </tr>
+                </thead>
+                <tbody id="scanner-history-tbody">
+                  <!-- Scanner logs -->
+                  <tr>
+                    <td colspan="5" style="text-align: center; color: var(--text-muted);">No scan sweeps logged yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL: Activity Log -->
+        <div class="dashboard-panel" id="panel-activity">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Activity Log</h2>
+              <p class="panel-desc">Real-time indicators of administrative and automated process events</p>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="table-container">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Action Category</th>
+                    <th>Details / Host Target</th>
+                    <th>Severity Indicator</th>
+                  </tr>
+                </thead>
+                <tbody id="activity-log-tbody">
+                  <!-- Dynamically mapped -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL: Endpoints -->
+        <div class="dashboard-panel" id="panel-endpoints">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Infrastructure Endpoints</h2>
+              <p class="panel-desc">Inventory of SentinelCrypt EDR active hosts, IP configurations, and agent connections</p>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="table-container">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Hostname</th>
+                    <th>Platform OS</th>
+                    <th>IP Address</th>
+                    <th>Agent Version</th>
+                    <th>Connection Status</th>
+                    <th>Control Action</th>
+                  </tr>
+                </thead>
+                <tbody id="endpoints-table-body">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL: Backups -->
+        <div class="dashboard-panel" id="panel-backups">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Backup Guard Shield</h2>
+              <p class="panel-desc">Manage air-gapped snapshots and volume shadow rollback parameters</p>
+            </div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="glass-card metric-card">
+              <div class="metric-info">
+                <span class="metric-title">Rollback Target Snapshot</span>
+                <span class="metric-value" style="font-size: 20px; font-weight: 700; margin-top: 5px;">2026-06-26 23:00</span>
+              </div>
+              <div class="metric-icon-wrapper" style="color: var(--color-success);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="glass-card metric-card">
+              <div class="metric-info">
+                <span class="metric-title">Protected Storage</span>
+                <span class="metric-value">42.8 TB</span>
+              </div>
+              <div class="metric-icon-wrapper" style="color: var(--color-primary);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="glass-card metric-card">
+              <div class="metric-info">
+                <span class="metric-title">Decoy Snapshots</span>
+                <span class="metric-value">12 Active</span>
+              </div>
+              <div class="metric-icon-wrapper" style="color: var(--color-accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 700;">Snapshots Vault Destinations</h3>
+            <div class="table-container">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Backup Target Destination</th>
+                    <th>Category Type</th>
+                    <th>Storage Used</th>
+                    <th>Integrity Health Check</th>
+                    <th>Air-Gap Switch</th>
+                  </tr>
+                </thead>
+                <tbody id="backups-table-body">
+                  <!-- Backups destination mappings -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL: Threat Intel -->
+        <div class="dashboard-panel" id="panel-intel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Cyber Threats Intelligence Feed</h2>
+              <p class="panel-desc">Real-time Indicators of Compromise (IOCs) and ransomware family definitions sync status</p>
+            </div>
+          </div>
+
+          <div class="overview-details-grid">
+            
+            <div class="glass-card">
+              <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 700;">Indicator of Compromise (IOC) Sync Logs</h3>
+              <div class="table-container">
+                <table class="custom-table">
+                  <thead>
+                    <tr>
+                      <th>IOC Indicator</th>
+                      <th>Threat Type</th>
+                      <th>Family Match</th>
+                      <th>Logged At</th>
+                    </tr>
+                  </thead>
+                  <tbody id="intel-ioc-tbody">
+                    <!-- Dynamic IOC feed entries -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="glass-card">
+              <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 700;">Ransomware Coverage Level</h3>
+              
+              <div class="progress-group">
+                <div class="progress-header">
+                  <span>LockBit 3.0</span>
+                  <span>99.9% Protection</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 99.9%;"></div>
+                </div>
+              </div>
+
+              <div class="progress-group">
+                <div class="progress-header">
+                  <span>BlackCat (ALPHV)</span>
+                  <span>97.2% Protection</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 97.2%;"></div>
+                </div>
+              </div>
+
+              <div class="progress-group">
+                <div class="progress-header">
+                  <span>Clop Ransomware</span>
+                  <span>94.8% Protection</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 94.8%;"></div>
+                </div>
+              </div>
+
+              <div class="progress-group">
+                <div class="progress-header">
+                  <span>Phobos Heuristics</span>
+                  <span>100% Protection</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 100%;"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PANEL: User Management (Admin Only) -->
+        <div class="dashboard-panel" id="panel-users">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">User Console Administration</h2>
+              <p class="panel-desc">Manage console user profiles, security roles, and authorizations</p>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 700;">Registered Console Users</h3>
+            <div class="table-container">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email Address</th>
+                    <th>Organization</th>
+                    <th>Access Role</th>
+                    <th>Platform Action</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <!-- Mapped from JavaScript in-memory store -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL: Audit Log (Admin Only) -->
+        <div class="dashboard-panel" id="panel-audit">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Platform Administrative Audit Log</h2>
+              <p class="panel-desc">Log database of dashboard access, credential inputs, and containment bypass requests</p>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="table-container">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Actor Name</th>
+                    <th>Role</th>
+                    <th>Action Context details</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-log-tbody">
+                  <!-- Dynamically rendered admin log -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL: Settings -->
+        <div class="dashboard-panel" id="panel-settings">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Security & Configuration Control</h2>
+              <p class="panel-desc">Customize platform parameters and detection thresholds</p>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 700;">Defense Engine Switches</h3>
+            
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-title">Active Decoy Honey Files</span>
+                <span class="settings-row-desc">Automatically populate temp paths with high-attraction decoy documents</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="set-decoy-switch" checked onchange="dashboard.updateSettings('decoy')">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-title">Autonomous Process Isolation</span>
+                <span class="settings-row-desc">Instantly restrict endpoints showing LockBit entropy spikes from LAN access</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="set-isolation-switch" checked onchange="dashboard.updateSettings('isolation')">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-title">Real-Time Slack/Webhooks Notification</span>
+                <span class="settings-row-desc">Send immediate payloads to mapped alert channels on critical threats</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="set-notif-switch" checked onchange="dashboard.updateSettings('notif')">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-title">System Theme Mode Selection</span>
+                <span class="settings-row-desc">Toggle the console UI between the sleek Dark design and Light contrast</span>
+              </div>
+              <button class="btn-secondary" style="border-radius: 8px; padding: 6px 14px;" onclick="theme.toggle()">
+                Toggle Mode
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ----------------------------------------------------
+       JavaScript Execution Layer
+       ---------------------------------------------------- -->
+  <script>
+    
+    // ----------------------------------------------------
+    // A. Centralized Reactive State Store
+    // ----------------------------------------------------
+    const store = {
+      users: [],
+      session: null,
+      theme: 'dark',
+      threats: [
+        { id: "TH-4902", family: "LockBit 3.0", host: "win10-office-pc", severity: "critical", status: "contained", time: "2026-06-26 23:40:12" },
+        { id: "TH-8820", family: "Clop Heuristics", host: "linux-prod-db", severity: "high", status: "active", time: "2026-06-26 23:42:05" },
+        { id: "TH-2210", family: "Phobos Ransomware", host: "macbook-m2-dev", severity: "medium", status: "resolved", time: "2026-06-26 21:15:30" }
+      ],
+      endpoints: [
+        { name: "win10-office-pc", os: "Windows 10", ip: "192.168.1.45", agent: "v2.4.1", status: "Isolated" },
+        { name: "linux-prod-db", os: "Ubuntu 22.04 LTS", ip: "10.0.4.12", agent: "v2.3.9", status: "Monitored" },
+        { name: "macbook-m2-dev", os: "macOS Sonoma", ip: "192.168.1.112", agent: "v2.4.0", status: "Monitored" }
+      ],
+      backups: [
+        { dest: "aws-s3-glacier-vault", type: "Air-gapped Object Lock", size: "28.5 TB", health: "Secure", active: true },
+        { dest: "local-nas-offline", type: "Local SAN Network share", size: "14.3 TB", health: "Synchronized", active: true }
+      ],
+      intel: [
+        { ioc: "185.220.101.45:443", type: "Command & Control (C2)", family: "LockBit 3.0", time: "5 mins ago" },
+        { ioc: "/tmp/updater.vbs", type: "Dropper script file path", family: "Phobos", time: "1 hour ago" },
+        { ioc: "eccbc87e4b5ce2fe28308fd9f2a7baf3", type: "Payload MD5 Hash", family: "BlackCat", time: "4 hours ago" }
+      ],
+      activity: [
+        { time: "23:42:05", type: "Threat Alert", detail: "Ransomware activity signature matched for host linux-prod-db", severity: "high" },
+        { time: "23:40:12", type: "Auto Containment", detail: "Privileges revoked for win10-office-pc - Process 8412 isolated", severity: "critical" },
+        { time: "23:00:00", type: "Snapshot Guard", detail: "Air-gapped shadow snapshots created successfully on AWS vault", severity: "low" }
+      ],
+      audit: [
+        { time: "2026-06-26 23:45:00", actor: "System Agent", role: "kernel", detail: "LockBit containment process isolated successfully" },
+        { time: "2026-06-26 22:15:00", actor: "System Admin", role: "admin", detail: "Updated Global slack notification webhook channels" }
+      ],
+      settings: {
+        decoy: true,
+        isolation: true,
+        notif: true
+      },
+      scans: []
+    };
+
+    // ----------------------------------------------------
+    // B. Navigation and Page Switcher Utilities
+    // ----------------------------------------------------
+    const navigation = {
+      goToLanding: () => {
+        document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-landing').classList.add('active');
+        window.scrollTo(0, 0);
+      },
+      goToLogin: () => {
+        document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-login').classList.add('active');
+        document.getElementById('login-alert').classList.add('hidden');
+        window.scrollTo(0, 0);
+      },
+      goToRegister: () => {
+        document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-register').classList.add('active');
+        document.getElementById('register-alert').classList.add('hidden');
+        window.scrollTo(0, 0);
+      },
+      goToDashboard: () => {
+        document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-dashboard').classList.add('active');
+        navigation.switchPanel('overview');
+        dashboard.renderAll();
+      },
+      switchPanel: (panelId) => {
+        document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+        const activeItem = document.getElementById(`sb-${panelId}`);
+        if (activeItem) activeItem.classList.add('active');
+
+        document.querySelectorAll('.dashboard-panel').forEach(el => el.classList.remove('active'));
+        const activePanel = document.getElementById(`panel-${panelId}`);
+        if (activePanel) activePanel.classList.add('active');
+      }
+    };
+
+    // ----------------------------------------------------
+    // C. Authentication Engine
+    // ----------------------------------------------------
+    const auth = {
+      seedAccounts: () => {
+        // Seed Admin Account if not exists
+        const adminExists = store.users.some(u => u.email === 'admin@sentinelcrypt.io');
+        if (!adminExists) {
+          store.users.push({
+            firstName: "System",
+            lastName: "Admin",
+            email: "admin@sentinelcrypt.io",
+            password: "Admin@123!",
+            org: "SentinelCrypt EDR Corp",
+            role: "admin"
+          });
+        }
+        // Seed Analyst Account if not exists
+        const analystExists = store.users.some(u => u.email === 'user@sentinelcrypt.io');
+        if (!analystExists) {
+          store.users.push({
+            firstName: "Demo",
+            lastName: "Analyst",
+            email: "user@sentinelcrypt.io",
+            password: "User@123!",
+            org: "SentinelCrypt EDR Corp",
+            role: "analyst"
+          });
+        }
+      },
+
+      togglePasswordVisibility: (inputId) => {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+          input.type = "text";
+        } else {
+          input.type = "password";
+        }
+      },
+
+      login: () => {
+        const emailInput = document.getElementById('login-email').value.trim();
+        const passwordInput = document.getElementById('login-password').value;
+        const alertBox = document.getElementById('login-alert');
+
+        alertBox.classList.add('hidden');
+
+        if (!emailInput || !passwordInput) {
+          alertBox.innerText = "Error: Please complete all email and password fields.";
+          alertBox.classList.remove('hidden');
+          return;
+        }
+
+        const matchedUser = store.users.find(u => u.email.toLowerCase() === emailInput.toLowerCase() && u.password === passwordInput);
+
+        if (!matchedUser) {
+          alertBox.innerText = "Error: Incorrect authentication credentials. Please try again.";
+          alertBox.classList.remove('hidden');
+          return;
+        }
+
+        // Store active session
+        store.session = matchedUser;
+        auth.updateNavbarState();
+
+        // Audit Log entry
+        store.audit.unshift({
+          time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+          actor: matchedUser.firstName + ' ' + matchedUser.lastName,
+          role: matchedUser.role,
+          detail: `User logged into dashboard session from console`
+        });
+
+        // Navigate to Dashboard
+        navigation.goToDashboard();
+      },
+
+      register: () => {
+        const firstName = document.getElementById('register-first-name').value.trim();
+        const lastName = document.getElementById('register-last-name').value.trim();
+        const email = document.getElementById('register-email').value.trim();
+        const org = document.getElementById('register-org').value.trim();
+        const password = document.getElementById('register-password').value;
+        const alertBox = document.getElementById('register-alert');
+
+        alertBox.classList.add('hidden');
+
+        if (!firstName || !lastName || !email || !org || !password) {
+          alertBox.innerText = "Error: Please complete all registration fields.";
+          alertBox.classList.remove('hidden');
+          return;
+        }
+
+        // Validate Email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          alertBox.innerText = "Error: Mapped email format is invalid.";
+          alertBox.classList.remove('hidden');
+          return;
+        }
+
+        // Validate password: min 8 chars, 1 uppercase, 1 number
+        const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(password)) {
+          alertBox.innerText = "Error: Password must contain min 8 chars, 1 uppercase letter, and 1 number.";
+          alertBox.classList.remove('hidden');
+          return;
+        }
+
+        // Check if user already exists
+        const userExists = store.users.some(u => u.email.toLowerCase() === email.toLowerCase());
+        if (userExists) {
+          alertBox.innerText = "Error: User is already registered under this email.";
+          alertBox.classList.remove('hidden');
+          return;
+        }
+
+        // Save User
+        const newUser = {
+          firstName,
+          lastName,
+          email,
+          org,
+          password,
+          role: "analyst" // Newly registered users are default analysts
+        };
+        store.users.push(newUser);
+
+        // Seed Session
+        store.session = newUser;
+        auth.updateNavbarState();
+
+        // Audit Log entry
+        store.audit.unshift({
+          time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+          actor: firstName + ' ' + lastName,
+          role: "analyst",
+          detail: `Created user profile and linked org ${org}`
+        });
+
+        // Navigate to Dashboard
+        navigation.goToDashboard();
+      },
+
+      logout: () => {
+        if (store.session) {
+          store.audit.unshift({
+            time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+            actor: store.session.firstName + ' ' + store.session.lastName,
+            role: store.session.role,
+            detail: `User logged out of active session`
+          });
+        }
+        store.session = null;
+        auth.updateNavbarState();
+        navigation.goToLanding();
+      },
+
+      updateNavbarState: () => {
+        const publicLinks = document.getElementById('nav-links-public');
+        const authStateContainer = document.getElementById('nav-auth-state');
+
+        if (store.session) {
+          // Logged In navbar view
+          publicLinks.style.display = 'none';
+
+          const initials = (store.session.firstName[0] + store.session.lastName[0]).toUpperCase();
+          const fullName = `${store.session.firstName} ${store.session.lastName}`;
+          const roleLabel = store.session.role === 'admin' ? 'Admin' : 'Analyst';
+          const roleBadgeColor = store.session.role === 'admin' ? 'var(--color-accent)' : 'var(--color-primary)';
+
+          authStateContainer.innerHTML = `
+            <a class="nav-item" onclick="navigation.goToDashboard()">Console Dashboard</a>
+            <div class="user-chip">
+              <div class="avatar-initials">${initials}</div>
+              <span class="user-chip-name">${fullName}</span>
+              <span class="badge" style="background: rgba(255,255,255,0.05); color: ${roleBadgeColor}; font-size: 10px; border: 1px solid ${roleBadgeColor};">${roleLabel}</span>
+            </div>
+            <button class="btn-secondary" style="padding: 6px 16px; font-size: 13px;" onclick="auth.logout()">Sign Out</button>
+          `;
+
+          // Admin sections in sidebar toggle
+          const adminSidebar = document.getElementById('sb-admin-section');
+          if (store.session.role === 'admin') {
+            adminSidebar.style.display = 'block';
+          } else {
+            adminSidebar.style.display = 'none';
+          }
+
+        } else {
+          // Logged Out public navbar view
+          publicLinks.style.display = 'flex';
+          authStateContainer.innerHTML = `
+            <a class="nav-item" onclick="navigation.goToLogin()">Sign In</a>
+            <button class="btn-glow" style="padding: 8px 20px; font-size: 13px;" onclick="navigation.goToRegister()">Get Started CTA</button>
+          `;
+        }
+      }
+    };
+
+    // ----------------------------------------------------
+    // D. Theme Engine Selection
+    // ----------------------------------------------------
+    const theme = {
+      init: () => {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        theme.apply(savedTheme);
+      },
+      apply: (themeName) => {
+        document.documentElement.setAttribute('data-theme', themeName);
+        store.theme = themeName;
+        localStorage.setItem('theme', themeName);
+        
+        // Render matching icon
+        const iconContainer = document.getElementById('theme-toggle-icon');
+        if (themeName === 'dark') {
+          iconContainer.innerHTML = `
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          `;
+        } else {
+          iconContainer.innerHTML = `
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          `;
+        }
+      },
+      toggle: () => {
+        const nextTheme = store.theme === 'dark' ? 'light' : 'dark';
+        theme.apply(nextTheme);
+      }
+    };
+
+    // ----------------------------------------------------
+    // E. Dashboard Rendering & Simulation Panel Controllers
+    // ----------------------------------------------------
+    const dashboard = {
+      renderAll: () => {
+        dashboard.renderOverview();
+        dashboard.renderThreats();
+        dashboard.renderEndpoints();
+        dashboard.renderBackups();
+        dashboard.renderIntel();
+        dashboard.renderActivityLog();
+        dashboard.renderUserManagement();
+        dashboard.renderAdminAuditLog();
+        dashboard.loadSettingsSwitches();
+      },
+
+      renderOverview: () => {
+        // Critical threat count metrics
+        const criticalCount = store.threats.filter(t => t.severity === 'critical' && t.status !== 'resolved').length;
+        document.getElementById('overview-metric-critical').innerText = criticalCount;
+
+        // Isolated count metrics
+        const isolatedCount = store.endpoints.filter(e => e.status === 'Isolated').length;
+        document.getElementById('overview-metric-isolated').innerText = isolatedCount;
+
+        // Threat Table on overview
+        const tbody = document.getElementById('overview-threats-tbody');
+        tbody.innerHTML = '';
+        const recentThreats = store.threats.slice(0, 3);
+        recentThreats.forEach(t => {
+          const statusPill = t.status === 'active' ? 'pill-active' : (t.status === 'contained' ? 'pill-contained' : 'pill-resolved');
+          const badgeClass = t.severity === 'critical' ? 'badge-critical' : (t.severity === 'high' ? 'badge-high' : 'badge-medium');
+          tbody.innerHTML += `
+            <tr>
+              <td><span style="font-family: var(--font-mono); color: var(--color-primary);">${t.id}</span></td>
+              <td><strong>${t.family}</strong></td>
+              <td>${t.host}</td>
+              <td><span class="badge ${badgeClass}">${t.severity}</span></td>
+              <td><span class="pill ${statusPill}">${t.status}</span></td>
+            </tr>
+          `;
+        });
+
+        // Overview Live Feed List
+        const feedList = document.getElementById('overview-feed-list');
+        feedList.innerHTML = '';
+        store.activity.slice(0, 3).forEach(act => {
+          const color = act.severity === 'critical' ? 'var(--color-danger)' : (act.severity === 'high' ? 'var(--color-warning)' : 'var(--color-success)');
+          feedList.innerHTML += `
+            <div class="feed-item">
+              <div class="feed-icon" style="background: ${color};"></div>
+              <div class="feed-text-col">
+                <span class="feed-text">${act.detail}</span>
+                <span class="feed-time">${act.time} UTC</span>
+              </div>
+            </div>
+          `;
+        });
+      },
+
+      renderThreats: () => {
+        const tbody = document.getElementById('threats-table-body');
+        tbody.innerHTML = '';
+
+        store.threats.forEach((t, index) => {
+          const statusPill = t.status === 'active' ? 'pill-active' : (t.status === 'contained' ? 'pill-contained' : 'pill-resolved');
+          const badgeClass = t.severity === 'critical' ? 'badge-critical' : (t.severity === 'high' ? 'badge-high' : 'badge-medium');
+          
+          let actionBtn = '';
+          if (t.status === 'active') {
+            actionBtn = `<button class="btn-glow" style="padding: 6px 12px; font-size: 11px;" onclick="dashboard.containThreat(${index})">Contain</button>`;
+          } else if (t.status === 'contained') {
+            actionBtn = `<button class="btn-secondary" style="padding: 6px 12px; font-size: 11px; color: var(--color-success);" onclick="dashboard.resolveThreat(${index})">Resolve</button>`;
+          } else {
+            actionBtn = `<span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Secured</span>`;
+          }
+
+          tbody.innerHTML += `
+            <tr>
+              <td><span style="font-family: var(--font-mono); color: var(--color-primary);">${t.id}</span></td>
+              <td><strong>${t.family}</strong></td>
+              <td>${t.host}</td>
+              <td><span class="badge ${badgeClass}">${t.severity}</span></td>
+              <td><span class="pill ${statusPill}">${t.status}</span></td>
+              <td>${t.time}</td>
+              <td>${actionBtn}</td>
+            </tr>
+          `;
+        });
+      },
+
+      containThreat: (index) => {
+        const threat = store.threats[index];
+        threat.status = 'contained';
+
+        // Update target endpoint connection status to isolated
+        const endpoint = store.endpoints.find(e => e.name === threat.host);
+        if (endpoint) {
+          endpoint.status = 'Isolated';
+        }
+
+        // Add event activity
+        store.activity.unshift({
+          time: new Date().toTimeString().slice(0, 8),
+          type: "Containment Response",
+          detail: `Automated agent rules isolated host ${threat.host}`,
+          severity: "high"
+        });
+
+        // Audit Log entry
+        store.audit.unshift({
+          time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+          actor: "Response System Engine",
+          role: "kernel",
+          detail: `Triggered host network port shutdown for ${threat.host} on threat alert match`
+        });
+
+        dashboard.renderAll();
+      },
+
+      resolveThreat: (index) => {
+        const threat = store.threats[index];
+        threat.status = 'resolved';
+
+        // Restore target endpoint status
+        const endpoint = store.endpoints.find(e => e.name === threat.host);
+        if (endpoint) {
+          endpoint.status = 'Monitored';
+        }
+
+        // Add event activity
+        store.activity.unshift({
+          time: new Date().toTimeString().slice(0, 8),
+          type: "Incident Resolved",
+          detail: `Ransomware event ${threat.id} verified and resolved`,
+          severity: "low"
+        });
+
+        // Audit Log entry
+        if (store.session) {
+          store.audit.unshift({
+            time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+            actor: store.session.firstName + ' ' + store.session.lastName,
+            role: store.session.role,
+            detail: `Manually marked incident alert ${threat.id} as resolved`
+          });
+        }
+
+        dashboard.renderAll();
+      },
+
+      renderEndpoints: () => {
+        const tbody = document.getElementById('endpoints-table-body');
+        tbody.innerHTML = '';
+
+        store.endpoints.forEach((e, index) => {
+          const statusColor = e.status === 'Isolated' ? 'var(--color-danger)' : 'var(--color-success)';
+          const actionBtn = e.status === 'Isolated' 
+            ? `<button class="btn-secondary" style="padding: 6px 12px; font-size: 11px; color: var(--color-success);" onclick="dashboard.toggleEndpointStatus(${index})">Re-connect</button>`
+            : `<button class="btn-glow" style="padding: 6px 12px; font-size: 11px;" onclick="dashboard.toggleEndpointStatus(${index})">Isolate Host</button>`;
+
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${e.name}</strong></td>
+              <td>${e.os}</td>
+              <td><span style="font-family: var(--font-mono);">${e.ip}</span></td>
+              <td>${e.agent}</td>
+              <td>
+                <span class="pill" style="background: rgba(255,255,255,0.03); color: ${statusColor}; font-weight: 700; border: 1px solid ${statusColor};">
+                  ● ${e.status}
+                </span>
+              </td>
+              <td>${actionBtn}</td>
+            </tr>
+          `;
+        });
+      },
+
+      toggleEndpointStatus: (index) => {
+        const endpoint = store.endpoints[index];
+        if (endpoint.status === 'Isolated') {
+          endpoint.status = 'Monitored';
+          store.activity.unshift({
+            time: new Date().toTimeString().slice(0, 8),
+            type: "Network Restored",
+            detail: `Privileges restored for host ${endpoint.name}`,
+            severity: "low"
+          });
+          if (store.session) {
+            store.audit.unshift({
+              time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+              actor: store.session.firstName + ' ' + store.session.lastName,
+              role: store.session.role,
+              detail: `Restored network permissions config for ${endpoint.name}`
+            });
+          }
+        } else {
+          endpoint.status = 'Isolated';
+          store.activity.unshift({
+            time: new Date().toTimeString().slice(0, 8),
+            type: "Isolation Config",
+            detail: `User manually triggered network port block for ${endpoint.name}`,
+            severity: "high"
+          });
+          if (store.session) {
+            store.audit.unshift({
+              time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+              actor: store.session.firstName + ' ' + store.session.lastName,
+              role: store.session.role,
+              detail: `Manually isolated host network route ${endpoint.name}`
+            });
+          }
+        }
+        dashboard.renderAll();
+      },
+
+      renderBackups: () => {
+        const tbody = document.getElementById('backups-table-body');
+        tbody.innerHTML = '';
+
+        store.backups.forEach((b, index) => {
+          const switchLabel = b.active ? 'Disable Air-Gap' : 'Enable Air-Gap';
+          const switchColor = b.active ? 'var(--color-success)' : 'var(--color-warning)';
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${b.dest}</strong></td>
+              <td><span style="color: var(--text-secondary);">${b.type}</span></td>
+              <td>${b.size}</td>
+              <td>
+                <span class="badge badge-low" style="font-size: 11px;">${b.health}</span>
+              </td>
+              <td>
+                <button class="btn-secondary" style="padding: 6px 12px; font-size: 11px; color: ${switchColor};" onclick="dashboard.toggleBackupAirgap(${index})">
+                  ${switchLabel}
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+      },
+
+      toggleBackupAirgap: (index) => {
+        const backup = store.backups[index];
+        backup.active = !backup.active;
+        backup.health = backup.active ? 'Secure' : 'Unsynchronized (Offline)';
+        
+        store.activity.unshift({
+          time: new Date().toTimeString().slice(0, 8),
+          type: "Backup Config",
+          detail: `Backup target ${backup.dest} air-gap status updated to: ${backup.active ? 'active' : 'disabled'}`,
+          severity: "low"
+        });
+
+        if (store.session) {
+          store.audit.unshift({
+            time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+            actor: store.session.firstName + ' ' + store.session.lastName,
+            role: store.session.role,
+            detail: `Toggled AWS airgap protection bridge for ${backup.dest}`
+          });
+        }
+        dashboard.renderAll();
+      },
+
+      renderIntel: () => {
+        const tbody = document.getElementById('intel-ioc-tbody');
+        tbody.innerHTML = '';
+
+        store.intel.forEach(i => {
+          tbody.innerHTML += `
+            <tr>
+              <td><span style="font-family: var(--font-mono); color: var(--color-primary);">${i.ioc}</span></td>
+              <td><strong>${i.type}</strong></td>
+              <td>${i.family}</td>
+              <td style="color: var(--text-muted); font-size: 12px;">${i.time}</td>
+            </tr>
+          `;
+        });
+      },
+
+      renderActivityLog: () => {
+        const tbody = document.getElementById('activity-log-tbody');
+        tbody.innerHTML = '';
+
+        store.activity.forEach(a => {
+          const badgeClass = a.severity === 'critical' ? 'badge-critical' : (a.severity === 'high' ? 'badge-high' : 'badge-low');
+          tbody.innerHTML += `
+            <tr>
+              <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">${a.time} UTC</td>
+              <td><strong>${a.type}</strong></td>
+              <td>${a.detail}</td>
+              <td><span class="badge ${badgeClass}">${a.severity}</span></td>
+            </tr>
+          `;
+        });
+      },
+
+      renderUserManagement: () => {
+        const tbody = document.getElementById('users-table-body');
+        tbody.innerHTML = '';
+
+        store.users.forEach((u, index) => {
+          const changeRoleLabel = u.role === 'admin' ? 'Demote to Analyst' : 'Promote to Admin';
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${u.firstName}</strong></td>
+              <td>${u.lastName}</td>
+              <td><span style="font-family: var(--font-mono);">${u.email}</span></td>
+              <td>${u.org}</td>
+              <td>
+                <span class="badge ${u.role === 'admin' ? 'badge-medium' : 'badge-low'}">${u.role}</span>
+              </td>
+              <td>
+                <button class="btn-secondary" style="padding: 6px 12px; font-size: 11px;" onclick="dashboard.changeUserRole(${index})">
+                  ${changeRoleLabel}
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+      },
+
+      changeUserRole: (index) => {
+        const targetUser = store.users[index];
+        
+        // Prevent demoting demoting active admin
+        if (store.session && store.session.email === targetUser.email) {
+          alert("Error: You cannot Demote yourself to Analyst.");
+          return;
+        }
+
+        const oldRole = targetUser.role;
+        targetUser.role = targetUser.role === 'admin' ? 'analyst' : 'admin';
+
+        store.activity.unshift({
+          time: new Date().toTimeString().slice(0, 8),
+          type: "Role Privilege Change",
+          detail: `User role modified for ${targetUser.email} from ${oldRole} to ${targetUser.role}`,
+          severity: "low"
+        });
+
+        if (store.session) {
+          store.audit.unshift({
+            time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+            actor: store.session.firstName + ' ' + store.session.lastName,
+            role: store.session.role,
+            detail: `Modified role mapping details of console user ${targetUser.email}`
+          });
+        }
+
+        dashboard.renderAll();
+      },
+
+      renderAdminAuditLog: () => {
+        const tbody = document.getElementById('audit-log-tbody');
+        tbody.innerHTML = '';
+
+        store.audit.forEach(l => {
+          tbody.innerHTML += `
+            <tr>
+              <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">${l.time}</td>
+              <td><strong>${l.actor}</strong></td>
+              <td><span class="badge ${l.role === 'admin' ? 'badge-medium' : 'badge-low'}">${l.role}</span></td>
+              <td>${l.detail}</td>
+            </tr>
+          `;
+        });
+      },
+
+      loadSettingsSwitches: () => {
+        document.getElementById('set-decoy-switch').checked = store.settings.decoy;
+        document.getElementById('set-isolation-switch').checked = store.settings.isolation;
+        document.getElementById('set-notif-switch').checked = store.settings.notif;
+      },
+
+      updateSettings: (settingKey) => {
+        const switchInput = document.getElementById(`set-${settingKey}-switch`);
+        store.settings[settingKey] = switchInput.checked;
+
+        store.activity.unshift({
+          time: new Date().toTimeString().slice(0, 8),
+          type: "System Configuration Change",
+          detail: `System control toggle updated: [${settingKey.toUpperCase()}] = ${store.settings[settingKey]}`,
+          severity: "low"
+        });
+
+        if (store.session) {
+          store.audit.unshift({
+            time: new Date().toISOString().replace('T', ' ').slice(0, 19),
+            actor: store.session.firstName + ' ' + store.session.lastName,
+            role: store.session.role,
+            detail: `Updated system rules config value [${settingKey}] to ${store.settings[settingKey]}`
+          });
+        }
+
+        dashboard.renderAll();
+      }
+    };
+
+    // ----------------------------------------------------
+    // F. Heuristics Live Scanner Simulation Engine
+    // ----------------------------------------------------
+    const scanner = {
+      isScanning: false,
+
+      startScan: () => {
+        if (scanner.isScanning) return;
+        scanner.isScanning = true;
+
+        const path = document.getElementById('scan-path').value.trim() || 'C:\\';
+        const type = document.getElementById('scan-type').value;
+        const terminal = document.getElementById('scanner-terminal-log');
+
+        terminal.innerHTML = `[SYSTEM] Preparing resources for heuristic agent scan: Path='${path}' (Type='${type}')\n`;
+        terminal.innerHTML += `[SYSTEM] Thread worker pools spawned. Starting file system traversal...\n`;
+        terminal.scrollTop = terminal.scrollHeight;
+
+        const dummyPaths = [
+          "\\win32\\drivers\\kernel_hook.sys",
+          "\\Temp\\invoice_locked.exe",
+          "\\Documents\\financial_ledger.xlsx",
+          "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\helper.vbs",
+          "\\System32\\config\\SYSTEM",
+          "\\Temp\\LockBitReadme.txt"
+        ];
+
+        let currentIndex = 0;
+        const totalFilesToCheck = Math.floor(Math.random() * 2000) + 500;
+        let threatFound = false;
+
+        const interval = setInterval(() => {
+          if (currentIndex < dummyPaths.length) {
+            const currentFilePath = path + dummyPaths[currentIndex];
+            terminal.innerHTML += `[READ] Checking file properties: ${currentFilePath}\n`;
+            
+            // Check if file seems like ransomware
+            if (currentFilePath.includes('locked') || currentFilePath.includes('LockBit')) {
+              terminal.innerHTML += `<span style="color: var(--color-danger); font-weight: 700;">[ALERT] Ransomware behavioral signature match: LockBit 3.0 at ${currentFilePath}</span>\n`;
+              threatFound = true;
+            }
+
+            terminal.scrollTop = terminal.scrollHeight;
+            currentIndex++;
+          } else {
+            clearInterval(interval);
+            scanner.isScanning = false;
+
+            const timeNow = new Date().toISOString().replace('T', ' ').slice(0, 19);
+            const resultLabel = threatFound ? "LockBit 3.0 Signature Blocked" : "No threat signatures found";
+            const resultColor = threatFound ? 'var(--color-danger)' : 'var(--color-success)';
+
+            terminal.innerHTML += `\n<span style="color: ${resultColor}; font-weight: 700;">[OK] Traversal complete. Checked ${totalFilesToCheck} files. Result: ${resultLabel}</span>\n`;
+            terminal.scrollTop = terminal.scrollHeight;
+
+            // Save Scan History row
+            const scanId = "SC-" + (Math.floor(Math.random() * 9000) + 1000);
+            store.scans.unshift({
+              id: scanId,
+              date: timeNow,
+              path: path,
+              checkedCount: totalFilesToCheck,
+              result: resultLabel,
+              threat: threatFound
+            });
+
+            // If threat found, push alert and append to threats list
+            if (threatFound) {
+              const newThreatId = "TH-" + (Math.floor(Math.random() * 9000) + 1000);
+              store.threats.unshift({
+                id: newThreatId,
+                family: "LockBit 3.0",
+                host: "win10-office-pc",
+                severity: "critical",
+                status: "active",
+                time: timeNow
+              });
+
+              store.activity.unshift({
+                time: new Date().toTimeString().slice(0, 8),
+                type: "Scan Threat Match",
+                detail: `Scan alert: ransomware signature match for win10-office-pc during sweep`,
+                severity: "critical"
+              });
+
+              if (store.session) {
+                store.audit.unshift({
+                  time: timeNow,
+                  actor: store.session.firstName + ' ' + store.session.lastName,
+                  role: store.session.role,
+                  detail: `Heuristic scan sweep identified LockBit threat path ${path}`
+                });
+              }
+            }
+
+            scanner.renderScanHistory();
+            dashboard.renderAll();
+          }
+        }, 800);
+      },
+
+      renderScanHistory: () => {
+        const tbody = document.getElementById('scanner-history-tbody');
+        tbody.innerHTML = '';
+
+        if (store.scans.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No scan sweeps logged yet.</td></tr>`;
+          return;
+        }
+
+        store.scans.forEach(s => {
+          const color = s.threat ? 'var(--color-danger)' : 'var(--color-success)';
+          tbody.innerHTML += `
+            <tr>
+              <td><span style="font-family: var(--font-mono); color: var(--color-primary);">${s.id}</span></td>
+              <td>${s.date}</td>
+              <td><span style="font-family: var(--font-mono);">${s.path}</span></td>
+              <td>${s.checkedCount}</td>
+              <td><span style="color: ${color}; font-weight: 700;">${s.result}</span></td>
+            </tr>
+          `;
+        });
+      }
+    };
+
+    // ----------------------------------------------------
+    // G. Landing Page Typewriter Terminal Simulation
+    // ----------------------------------------------------
+    const landingTerminal = {
+      lines: [
+        "sentinelcrypt-agentd v2.4.1 starting...",
+        "[OK] Kernel driver loaded successfully.",
+        "[OK] Memory protection hooks initialized.",
+        "[INFO] Real-time file system monitor active on: /var/www, /home, /opt",
+        "[INFO] Scanning network interfaces for lateral movement signatures...",
+        "[MONITOR] Waiting for system activity...",
+        "",
+        "[ALERT] Process 8412 (unknown.exe) spawned from Temp directory.",
+        "[ALERT] Read request surge detected: 520 files/sec on /home/user/Documents",
+        "[WARNING] File writes to .locked extension detected! High entropy detected.",
+        "[CRITICAL] Ransomware behavior signature matched: LockBit 3.0",
+        "",
+        "[CONTAINMENT] Initializing threat response protocol...",
+        "[ACTION] Terminating process 8412...",
+        "[ACTION] Revoking network connections for host 192.168.1.45...",
+        "[ACTION] Isolating endpoint 'win10-office-pc' from the LAN...",
+        "[ACTION] Creating snapshot rollback checkpoint for volume shadow copy...",
+        "[OK] Threat contained successfully. 0 data loss occurred.",
+        "[STATUS] SentinelCrypt EDR active. Host secure."
+      ],
+      currentLineIndex: 0,
+      charIndex: 0,
+      speed: 30, // typing speed ms
+      lineDelay: 600, // delay between lines
+
+      init: () => {
+        const terminalBody = document.getElementById('landing-terminal-body');
+        if (!terminalBody) return;
+        terminalBody.innerHTML = '';
+        landingTerminal.currentLineIndex = 0;
+        landingTerminal.charIndex = 0;
+        landingTerminal.typeLine();
+      },
+
+      typeLine: () => {
+        const terminalBody = document.getElementById('landing-terminal-body');
+        if (landingTerminal.currentLineIndex >= landingTerminal.lines.length) {
+          // Restart animation loop after 10 seconds
+          setTimeout(() => {
+            landingTerminal.init();
+          }, 10000);
+          return;
+        }
+
+        const fullLine = landingTerminal.lines[landingTerminal.currentLineIndex];
+        
+        // Create line element
+        let lineClass = '';
+        if (fullLine.startsWith('[OK]')) lineClass = 'success';
+        else if (fullLine.startsWith('[WARNING]')) lineClass = 'warning';
+        else if (fullLine.startsWith('[ALERT]') || fullLine.startsWith('[CRITICAL]')) lineClass = 'danger';
+        else if (fullLine.startsWith('[INFO]') || fullLine.startsWith('[CONTAINMENT]')) lineClass = 'info';
+
+        const lineDiv = document.createElement('div');
+        lineDiv.className = `terminal-line ${lineClass}`;
+        terminalBody.appendChild(lineDiv);
+
+        landingTerminal.charIndex = 0;
+        
+        function typeChar() {
+          if (landingTerminal.charIndex < fullLine.length) {
+            lineDiv.innerText += fullLine[landingTerminal.charIndex];
+            landingTerminal.charIndex++;
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+            setTimeout(typeChar, landingTerminal.speed);
+          } else {
+            // Next line
+            landingTerminal.currentLineIndex++;
+            setTimeout(landingTerminal.typeLine, landingTerminal.lineDelay);
+          }
+        }
+
+        typeChar();
+      }
+    };
+
+    // ----------------------------------------------------
+    // H. Custom Cyber Cursor System
+    // ----------------------------------------------------
+    const cursor = {
+      init: () => {
+        // Create custom cursor elements
+        const cursorEl = document.createElement('div');
+        cursorEl.id = 'custom-cursor';
+        cursorEl.className = 'custom-cursor';
+        
+        const cursorDotEl = document.createElement('div');
+        cursorDotEl.id = 'custom-cursor-dot';
+        cursorDotEl.className = 'custom-cursor-dot';
+        
+        document.body.appendChild(cursorEl);
+        document.body.appendChild(cursorDotEl);
+
+        document.addEventListener('mousemove', (e) => {
+          cursorEl.style.left = e.clientX + 'px';
+          cursorEl.style.top = e.clientY + 'px';
+          cursorDotEl.style.left = e.clientX + 'px';
+          cursorDotEl.style.top = e.clientY + 'px';
+        });
+
+        const interactiveElements = 'a, button, select, input, textarea, .sidebar-item, .nav-item, .switch, .slider, .compliance-badge, .logo-group';
+        document.addEventListener('mouseover', (e) => {
+          if (e.target.closest(interactiveElements)) {
+            cursorEl.classList.add('hover');
+            cursorDotEl.classList.add('hover');
+          }
+        });
+
+        document.addEventListener('mouseout', (e) => {
+          if (e.target.closest(interactiveElements)) {
+            cursorEl.classList.remove('hover');
+            cursorDotEl.classList.remove('hover');
+          }
+        });
+
+        document.addEventListener('mouseleave', () => {
+          cursorEl.style.display = 'none';
+          cursorDotEl.style.display = 'none';
+        });
+        
+        document.addEventListener('mouseenter', () => {
+          cursorEl.style.display = 'block';
+          cursorDotEl.style.display = 'block';
+        });
+      }
+    };
+
+    // ----------------------------------------------------
+    // I. Platform Initializer
+    // ----------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Initialize custom theme system
+      theme.init();
+
+      // 2. Seed Admin & User analyst test accounts
+      auth.seedAccounts();
+
+      // 3. Render Navbar authentication nodes
+      auth.updateNavbarState();
+
+      // 4. Fire typewriter simulator
+      landingTerminal.init();
+
+      // 5. Initialize custom cursor tracking
+      cursor.init();
+
+      // 6. Navigate to Home Landing
+      navigation.goToLanding();
+    });
+
+  </script>
+
+</body>
+</html>

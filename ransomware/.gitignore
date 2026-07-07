@@ -1,0 +1,39 @@
+venv/
+.venv/
+
+__pycache__/
+*.pyc
+
+# Environment & secrets — never commit real credentials
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+*.env
+secrets/
+*.pem
+*.key
+
+# Local databases (may contain user data)
+*.db
+*.sqlite
+*.sqlite3
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+
+node_modules/
+dist/
+build/
+
+# Agent runtime artifacts
+agent/quarantine/
+agent/quarantine_map.json
+agent/offline_buffer.jsonl
+
+# Python / test caches
+.pytest_cache/
+.coverage
+htmlcov/
