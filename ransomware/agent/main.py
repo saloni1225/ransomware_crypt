@@ -53,6 +53,12 @@ from deception_engine.file_placer import start_deception_engine
 from ransomware_detection.detector import start_ransomware_detector
 from command_processor import start_command_processor
 
+# ── New real-telemetry module collectors ──────────────────────────────────────
+from module_collectors.malware_collector import start_malware_collector
+from module_collectors.firewall_collector import start_firewall_collector
+from module_collectors.browser_collector import start_browser_collector
+from module_collectors.privacy_collector import start_privacy_collector
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Shutdown handling
@@ -146,6 +152,35 @@ def main():
         components.append(("CommandProcessor", cmd_stop_event))
     except Exception as exc:
         logger.error("Command processor failed to start: %s", exc)
+
+    # ── Adapter-based module collectors ──────────────────────────────────────
+    try:
+        logger.info("Starting Malware Collector (Adapter) …")
+        _, malware_stop = start_malware_collector()
+        components.append(("MalwareCollector", malware_stop))
+    except Exception as exc:
+        logger.error("Malware collector failed to start: %s", exc)
+
+    try:
+        logger.info("Starting Firewall Collector (Adapter) …")
+        _, firewall_stop = start_firewall_collector()
+        components.append(("FirewallCollector", firewall_stop))
+    except Exception as exc:
+        logger.error("Firewall collector failed to start: %s", exc)
+
+    try:
+        logger.info("Starting Browser Collector (Adapter) …")
+        _, browser_stop = start_browser_collector()
+        components.append(("BrowserCollector", browser_stop))
+    except Exception as exc:
+        logger.error("Browser collector failed to start: %s", exc)
+
+    try:
+        logger.info("Starting Privacy Collector (Adapter) …")
+        _, privacy_stop = start_privacy_collector()
+        components.append(("PrivacyCollector", privacy_stop))
+    except Exception as exc:
+        logger.error("Privacy collector failed to start: %s", exc)
 
     logger.info("All agent modules started.  Press Ctrl+C to stop.")
 

@@ -1,6 +1,7 @@
 """
 Browser Protection Router — /api/browser
 Phase 3: Web threat protection, malicious download blocking, fake login detection, and URL safety verification.
+Phase 3 (real adapter): /browser/agent-report — accepts real browser process inventory from agent.
 """
 import datetime
 import re
@@ -8,13 +9,94 @@ from urllib.parse import urlparse
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 from app.database import get_db
-from app.models import BrowserEvent, Device, ThreatEvent
+from app.models import BrowserEvent, Device, ThreatEvent, ThreatLog
 from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/browser", tags=["Browser Protection"])
+
+
+class BrowserAgentReport(BaseModel):
+    device_id: str
+    module: str = "browser"
+    platform: str = ""
+    supported: bool = True
+    health: str = "unknown"
+    capability: Optional[Dict[str, Any]] = None
+    data: Optional[Dict[str, Any]] = None
+    collected_at: Optional[str] = None
+
+
+@router.post("/agent-report")
+def ingest_browser_agent_report(
+    report: BrowserAgentReport,
+    db: Session = Depends(get_db),
+):
+    """
+    Accept real browser process inventory from the endpoint agent.
+    Creates ThreatEvents for browsers running with dangerous flags.
+    """
+    device = db.query(Device).filter(Device.id == report.device_id).first()
+    if not device:
+        device = Device(
+            id=report.device_id, hostname=report.device_id,
+            status="online", last_seen=datetime.datetime.utcnow()
+        )
+        db.add(device)
+        db.commit()
+    else:
+        device.last_seen = datetime.datetime.utcnow()
+        db.commit()
+
+    browsers = (report.data or {}).get("browsers", [])
+    risky_browsers = [b for b in browsers if b.get("risk_level") in ("high", "medium")]
+
+    # Log the snapshot
+    log = ThreatLog(
+        device_id=report.device_id,
+        type="browser",
+        action="telemetry_snapshot",
+        details={
+            "supported": report.supported,
+            "health": report.health,
+            "platform": report.platform,
+            "browser_count": len(browsers),
+            "risky_count": len(risky_browsers),
+        },
+    )
+    db.add(log)
+    db.commit()
+
+    # Create threat events for high-risk browser configurations
+    for browser in browsers:
+        if browser.get("risk_level") == "high":
+            suspicious_args = browser.get("suspicious_args", [])
+            threat = ThreatEvent(
+                device_id=report.device_id,
+                title=f"Insecure Browser Config: {browser.get('name', 'Unknown')}",
+                description=(
+                    f"Browser '{browser.get('name')}' (PID {browser.get('pid')}) "
+                    f"is running with unsafe flags: {', '.join(suspicious_args)}"
+                ),
+                category="malware",
+                severity="high",
+                confidence_score=85,
+                timestamp=datetime.datetime.utcnow(),
+            )
+            db.add(threat)
+    db.commit()
+
+    return {
+        "status": "accepted",
+        "device_id": report.device_id,
+        "health": report.health,
+        "browsers_ingested": len(browsers),
+        "risky_browsers": len(risky_browsers),
+    }
+
+
 
 class CheckURLRequest(BaseModel):
     url: str
