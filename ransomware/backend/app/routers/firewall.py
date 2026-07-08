@@ -1,18 +1,96 @@
 """
 Firewall Module Router — /api/firewall
 Phase 2: CRUD for firewall rules with toggle and stats.
+Phase 3 (real adapter): /firewall/status — accepts real host firewall telemetry.
 """
 import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from app.database import get_db
-from app.models import FirewallRule
+from app.models import FirewallRule, ThreatLog, Device, ThreatEvent
 from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/firewall", tags=["Firewall"])
+
+
+class FirewallAgentReport(BaseModel):
+    device_id: str
+    module: str = "firewall"
+    platform: str = ""
+    supported: bool = True
+    health: str = "unknown"
+    capability: Optional[Dict[str, Any]] = None
+    data: Optional[Dict[str, Any]] = None
+    collected_at: Optional[str] = None
+
+
+@router.post("/status")
+def ingest_firewall_status(
+    report: FirewallAgentReport,
+    db: Session = Depends(get_db),
+):
+    """
+    Accept real firewall profile telemetry from the endpoint agent.
+    Creates a ThreatEvent if any profile is disabled.
+    """
+    device = db.query(Device).filter(Device.id == report.device_id).first()
+    if not device:
+        device = Device(
+            id=report.device_id, hostname=report.device_id,
+            status="online", last_seen=datetime.datetime.utcnow()
+        )
+        db.add(device)
+        db.commit()
+    else:
+        device.last_seen = datetime.datetime.utcnow()
+        db.commit()
+
+    profiles = (report.data or {}).get("profiles", [])
+    disabled_profiles = [p["name"] for p in profiles if not p.get("enabled")]
+
+    log = ThreatLog(
+        device_id=report.device_id,
+        type="firewall",
+        action="telemetry_snapshot",
+        details={
+            "supported": report.supported,
+            "health": report.health,
+            "platform": report.platform,
+            "profiles": profiles,
+            "disabled_profiles": disabled_profiles,
+        },
+    )
+    db.add(log)
+    db.commit()
+
+    if disabled_profiles:
+        threat = ThreatEvent(
+            device_id=report.device_id,
+            title=f"Firewall Disabled: {', '.join(disabled_profiles)}",
+            description=(
+                f"Host firewall profile(s) are DISABLED on {report.device_id}: "
+                f"{', '.join(disabled_profiles)}. Immediate remediation required."
+            ),
+            category="network",
+            severity="high",
+            confidence_score=92,
+            timestamp=datetime.datetime.utcnow(),
+        )
+        db.add(threat)
+        db.commit()
+
+    return {
+        "status": "accepted",
+        "device_id": report.device_id,
+        "health": report.health,
+        "profiles_ingested": len(profiles),
+        "disabled_profiles": disabled_profiles,
+    }
+
+
 
 class FirewallRuleCreate(BaseModel):
     rule_name: str

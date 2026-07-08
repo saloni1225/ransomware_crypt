@@ -1,19 +1,116 @@
 """
 Privacy Dashboard Router — /api/privacy
 Phase 3: Data exfiltration monitoring, privacy health score, and compliance tracking.
+Phase 3 (real adapter): /privacy/agent-report — accepts real privacy scan findings from agent.
 """
 import datetime
 import random
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from app.database import get_db
-from app.models import PrivacyEvent, Device
+from app.models import PrivacyEvent, Device, ThreatLog, ThreatEvent
 from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/privacy", tags=["Privacy"])
+
+
+class PrivacyAgentReport(BaseModel):
+    device_id: str
+    module: str = "privacy"
+    platform: str = ""
+    supported: bool = True
+    health: str = "unknown"
+    capability: Optional[Dict[str, Any]] = None
+    data: Optional[Dict[str, Any]] = None
+    collected_at: Optional[str] = None
+
+
+@router.post("/agent-report")
+def ingest_privacy_agent_report(
+    report: PrivacyAgentReport,
+    db: Session = Depends(get_db),
+):
+    """
+    Accept real privacy scan findings from the endpoint agent.
+    Maps each finding to a PrivacyEvent row. High-severity findings
+    also create ThreatEvents.
+    """
+    device = db.query(Device).filter(Device.id == report.device_id).first()
+    if not device:
+        device = Device(
+            id=report.device_id, hostname=report.device_id,
+            status="online", last_seen=datetime.datetime.utcnow()
+        )
+        db.add(device)
+        db.commit()
+    else:
+        device.last_seen = datetime.datetime.utcnow()
+        db.commit()
+
+    findings = (report.data or {}).get("findings", [])
+
+    # Map finding_type → data_category
+    _category_map = {
+        "aws_access_key": "credentials",
+        "aws_secret_key": "credentials",
+        "private_key_header": "credentials",
+        "password_plaintext": "credentials",
+        "api_key_pattern": "credentials",
+        "github_pat": "credentials",
+        "stripe_secret": "credentials",
+        "sendgrid_key": "credentials",
+        "connection_string": "credentials",
+        "jwt_token": "credentials",
+        "risky_download": "intellectual_property",
+        "world_readable_sensitive_file": "PII",
+        "sensitive_file_present": "PII",
+    }
+
+    ingested = 0
+    for finding in findings:
+        severity = finding.get("severity", "medium")
+        data_category = _category_map.get(finding.get("type", ""), "intellectual_property")
+
+        event = PrivacyEvent(
+            device_id=report.device_id,
+            event_type=finding.get("type", "unknown"),
+            data_category=data_category,
+            severity=severity,
+            details={
+                "path": finding.get("path"),
+                "reason": finding.get("reason"),
+                "platform": report.platform,
+            },
+            is_blocked=False,
+        )
+        db.add(event)
+        ingested += 1
+
+        if severity == "high":
+            threat = ThreatEvent(
+                device_id=report.device_id,
+                title=f"Privacy Risk: {finding.get('type', 'Unknown')}",
+                description=f"High-severity privacy finding on {report.device_id}: {finding.get('reason')}",
+                category="malware",
+                severity="high",
+                confidence_score=80,
+                timestamp=datetime.datetime.utcnow(),
+            )
+            db.add(threat)
+
+    db.commit()
+
+    return {
+        "status": "accepted",
+        "device_id": report.device_id,
+        "health": report.health,
+        "findings_ingested": ingested,
+    }
+
+
 
 class PrivacyEventCreate(BaseModel):
     device_id: Optional[str] = None
