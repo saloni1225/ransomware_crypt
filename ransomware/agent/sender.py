@@ -90,9 +90,11 @@ class AgentSender:
         logger.debug("Successfully enqueued event to disk type=%s action=%s", log_type, action)
 
     def start(self) -> None:
-        """Register device then start background threads."""
-        self._register_device()
-
+        """Start background threads. Registration runs in the background so a
+        temporarily-unreachable backend never blocks the monitors from starting
+        (the backend also auto-registers a device on first telemetry)."""
+        threading.Thread(target=self._register_device, daemon=True,
+                         name="agent-register").start()
         threading.Thread(target=self._heartbeat_loop, daemon=True,
                          name="agent-heartbeat").start()
         threading.Thread(target=self._sync_loop, daemon=True,
