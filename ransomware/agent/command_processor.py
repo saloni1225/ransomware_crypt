@@ -72,6 +72,44 @@ def _quarantine_file(file_path: str, scan_id: int) -> dict:
         
     return {"status": "quarantined", "original_path": file_path, "quarantine_path": quarantine_path}
 
+def _scan_files(payload: dict, session: requests.Session) -> dict:
+    """Run a real on-disk malware scan and post results to the backend."""
+    from ransomware_detection.scanner import run_scan
+
+    paths = payload.get("paths") or None
+    max_files = int(payload.get("max_files", 5000))
+
+    results = run_scan(paths=paths, max_files=max_files)
+    threats_found = sum(1 for r in results if r["status"] in ("infected", "suspicious"))
+
+    report = {
+        "device_id": config.DEVICE_ID,
+        "scan_id_ref": payload.get("scan_id_ref"),
+        "results": results,
+    }
+
+    ingest_url = f"{config.BACKEND_URL}/malware/scan-results"
+    posted = False
+    for attempt in range(3):
+        try:
+            r = session.post(ingest_url, json=report, timeout=60)
+            if r.status_code in (200, 201):
+                posted = True
+                break
+            logger.warning("scan-results POST returned %d: %s", r.status_code, r.text[:200])
+        except Exception as exc:
+            logger.warning("scan-results POST attempt %d failed: %s", attempt + 1, exc)
+        time.sleep(1.0 * (2 ** attempt))
+
+    if not posted:
+        raise RuntimeError("Could not deliver scan results to backend after 3 attempts")
+
+    return {
+        "status": "scan_complete",
+        "files_scanned": len(results),
+        "threats_found": threats_found,
+    }
+
 def _restore_file(scan_id: int) -> dict:
     if not os.path.exists(QUARANTINE_MAP_PATH):
         raise FileNotFoundError("Quarantine registry map file not found")
@@ -149,6 +187,9 @@ def execute_single_command(cmd: dict, session: requests.Session):
                 raise ValueError("Missing 'file_path' or 'scan_id' in payload")
             result = _quarantine_file(file_path, scan_id)
             
+        elif cmd_type == "scan_files":
+            result = _scan_files(payload, session)
+
         elif cmd_type == "restore_file":
             scan_id = payload.get("scan_id")
             if scan_id is None:

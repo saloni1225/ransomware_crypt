@@ -229,17 +229,47 @@ def _handle_specialised_event(
 
     # ── Network connections ───────────────────────────────────────────────
     elif event_type == "network" and action in ("new_connection", "suspicious_connection"):
+        from app.services.network_service import classify_connection
+
+        remote_ip = details.get("remote_ip", "0.0.0.0")
+        remote_port = details.get("remote_port") or 0
+
+        # Run the real agent connection through the backend C2 blocklist +
+        # port-risk classifier rather than trusting the agent's coarse status.
+        status, country = classify_connection(remote_ip, remote_port)
+        # Preserve an agent-side "suspicious" flag if the classifier says normal
+        if status == "normal" and details.get("status") == "suspicious":
+            status = "suspicious"
+
         conn = NetworkConnection(
             device_id=device.id,
-            remote_ip=details.get("remote_ip", "0.0.0.0"),
+            remote_ip=remote_ip,
             remote_port=details.get("remote_port"),
             local_port=details.get("local_port"),
             protocol=details.get("protocol", "TCP"),
             process_name=details.get("process_name", "unknown"),
-            status=details.get("status", "normal"),
+            status=status,
+            country=country,
         )
         db.add(conn)
         db.commit()
+
+        # A live connection to a known C2 range is a critical threat event.
+        if status == "c2":
+            threat = ThreatEvent(
+                device_id=device.id,
+                title="C2 Communication Detected",
+                description=(
+                    f"Process {details.get('process_name', 'unknown')} connected to "
+                    f"known C2 infrastructure {remote_ip}:{remote_port}."
+                ),
+                category="network",
+                severity="critical",
+                confidence_score=92,
+                timestamp=datetime.datetime.utcnow(),
+            )
+            db.add(threat)
+            db.commit()
 
 
 @router.get("/events", response_model=List[ThreatEventResponse])

@@ -1,0 +1,178 @@
+10:39:37 [INFO] agent.main: ============================================================
+10:39:37 [INFO] agent.main:   SentinelCrypt EDR — Endpoint Agent
+10:39:37 [INFO] agent.main:   Device ID : ANMOLROG
+10:39:37 [INFO] agent.main:   Backend   : http://127.0.0.1:8000/api
+10:39:37 [INFO] agent.main: ============================================================
+10:39:37 [INFO] agent.main: Starting AgentSender …
+10:39:42 [INFO] agent.sender: Device registered: ANMOLROG
+10:39:42 [INFO] agent.sender: AgentSender started (device_id=ANMOLROG)
+10:39:42 [INFO] agent.main: Starting File Monitor …
+10:39:42 [INFO] agent.file_monitor: Watching: C:\Users\Anmol/Documents
+10:39:42 [INFO] agent.file_monitor: Watching: C:\Users\Anmol/Desktop
+10:39:42 [INFO] agent.file_monitor: Watching: C:\Users\Anmol/Downloads
+10:39:42 [ERROR] agent.main: File monitor failed to start: 'handle' must be a _ThreadHandle
+10:39:42 [INFO] agent.main: Starting Deception Engine …
+10:39:42 [INFO] agent.deception_engine: Decoy file created: C:\Users\Anmol/Documents\salary.xlsx
+10:39:42 [INFO] agent.deception_engine: Decoy file created: C:\Users\Anmol/Documents\employee_data.xlsx
+10:39:42 [INFO] agent.deception_engine: Decoy file created: C:\Users\Anmol/Documents\passwords.txt
+10:39:42 [INFO] agent.deception_engine: Decoy file created: C:\Users\Anmol/Documents\bank_details.docx
+10:39:42 [INFO] agent.deception_engine: Decoy file created: C:\Users\Anmol/Documents\api_keys.txt
+10:39:42 [ERROR] agent.main: Deception engine failed to start: 'handle' must be a _ThreadHandle
+10:39:42 [INFO] agent.main: Starting Process Monitor …
+10:39:42 [INFO] agent.process_monitor: Process monitor started — tracking 379 existing processes
+10:39:42 [INFO] agent.main: Starting USB Monitor …
+10:39:42 [INFO] agent.usb_monitor: USB monitor started (platform=Windows)
+10:39:42 [INFO] agent.main: Starting Network Collector …
+10:39:42 [INFO] agent.network_monitor: Network collector started — 156 existing connections snapshotted
+10:39:42 [INFO] agent.main: Starting Wi-Fi Scanner …
+10:39:42 [INFO] agent.wifi_scanner: Initializing Windows Wi-Fi adapter (netsh)
+10:39:42 [INFO] agent.wifi_scanner: Wi-Fi scanner started (interval=60s)
+10:39:42 [INFO] agent.main: Starting Ransomware Background Scan …
+10:39:42 [INFO] agent.ransomware_detection: Background ransomware scan starting …
+10:39:42 [INFO] agent.main: Starting Remote Command Processor …
+10:39:42 [INFO] agent.command_processor: Command polling loop started (interval=10s)
+10:39:42 [INFO] agent.main: Starting Malware Collector (Adapter) …
+10:39:42 [WARNING] agent.usb_monitor: wmi/pywin32 not installed — falling back to polling USB monitor
+10:39:42 [INFO] agent.collector.malware: Malware collector started (interval=300s)
+10:39:42 [INFO] agent.usb_monitor: USB polling watcher started (fallback mode)
+10:39:42 [INFO] agent.main: Starting Firewall Collector (Adapter) …
+10:39:42 [INFO] agent.collector.firewall: Firewall collector started (interval=120s)
+10:39:42 [INFO] agent.main: Starting Browser Collector (Adapter) …
+10:39:42 [INFO] agent.collector.browser: Browser collector started (interval=60s)
+10:39:42 [INFO] agent.main: Starting Privacy Collector (Adapter) …
+10:39:42 [INFO] agent.collector.privacy: Privacy collector started (interval=600s)
+10:39:42 [INFO] agent.main: All agent modules started.  Press Ctrl+C to stop.
+10:39:46 [WARNING] agent.ransomware_detection: High-entropy file found (7.89): C:\Users\Anmol/Downloads\MuleNet — Real-Time Graph Intelligence for Mule Account Detection.pptx
+10:39:47 [WARNING] agent.ransomware_detection: High-entropy file found (7.90): C:\Users\Anmol/Downloads\task1.xlsx
+10:39:47 [WARNING] agent.ransomware_detection: High-entropy file found (7.92): C:\Users\Anmol/Downloads\apache-maven-3.9.11-bin\apache-maven-3.9.11\lib\wagon-http-shared-3.5.3.jar
+10:39:52 [WARNING] agent.sender: Heartbeat error: HTTPConnectionPool(host='127.0.0.1', port=8000): Read timed out. (read timeout=10)
+10:42:01 [INFO] agent.main: ============================================================
+10:42:01 [INFO] agent.main:   SentinelCrypt EDR — Endpoint Agent
+10:42:01 [INFO] agent.main:   Device ID : ANMOLROG
+10:42:01 [INFO] agent.main:   Backend   : http://127.0.0.1:8000/api
+10:42:01 [INFO] agent.main: ============================================================
+10:42:01 [INFO] agent.main: Starting AgentSender …
+10:42:05 [INFO] agent.sender: Device registered: ANMOLROG
+10:42:05 [INFO] agent.sender: AgentSender started (device_id=ANMOLROG)
+10:42:05 [INFO] agent.main: Starting File Monitor …
+10:42:05 [INFO] agent.file_monitor: Watching: C:\Users\Anmol/Documents
+10:42:05 [INFO] agent.file_monitor: Watching: C:\Users\Anmol/Desktop
+10:42:05 [INFO] agent.file_monitor: Watching: C:\Users\Anmol/Downloads
+10:42:05 [INFO] agent.file_monitor: File monitor started (3 paths)
+10:42:05 [INFO] agent.main: Starting Deception Engine …
+10:42:05 [INFO] agent.deception_engine: Deception engine started — monitoring 5 decoy files in C:\Users\Anmol/Documents
+10:42:05 [INFO] agent.main: Starting Process Monitor …
+10:42:05 [INFO] agent.process_monitor: Process monitor started — tracking 387 existing processes
+10:42:05 [INFO] agent.main: Starting USB Monitor …
+10:42:05 [INFO] agent.usb_monitor: USB monitor started (platform=Windows)
+10:42:05 [INFO] agent.main: Starting Network Collector …
+10:42:05 [INFO] agent.network_monitor: Network collector started — 144 existing connections snapshotted
+10:42:05 [INFO] agent.main: Starting Wi-Fi Scanner …
+10:42:05 [INFO] agent.wifi_scanner: Initializing Windows Wi-Fi adapter (netsh)
+10:42:05 [INFO] agent.wifi_scanner: Wi-Fi scanner started (interval=60s)
+10:42:05 [INFO] agent.main: Starting Ransomware Background Scan …
+10:42:05 [INFO] agent.ransomware_detection: Background ransomware scan starting …
+10:42:05 [INFO] agent.main: Starting Remote Command Processor …
+10:42:05 [INFO] agent.command_processor: Command polling loop started (interval=10s)
+10:42:05 [INFO] agent.main: Starting Malware Collector (Adapter) …
+10:42:05 [INFO] agent.collector.malware: Malware collector started (interval=300s)
+10:42:05 [WARNING] agent.usb_monitor: wmi/pywin32 not installed — falling back to polling USB monitor
+10:42:05 [INFO] agent.main: Starting Firewall Collector (Adapter) …
+10:42:05 [INFO] agent.usb_monitor: USB polling watcher started (fallback mode)
+10:42:05 [INFO] agent.collector.firewall: Firewall collector started (interval=120s)
+10:42:05 [INFO] agent.main: Starting Browser Collector (Adapter) …
+10:42:05 [INFO] agent.collector.browser: Browser collector started (interval=60s)
+10:42:05 [INFO] agent.main: Starting Privacy Collector (Adapter) …
+10:42:05 [INFO] agent.collector.privacy: Privacy collector started (interval=600s)
+10:42:05 [INFO] agent.main: All agent modules started.  Press Ctrl+C to stop.
+10:42:10 [WARNING] agent.ransomware_detection: High-entropy file found (7.89): C:\Users\Anmol/Downloads\MuleNet — Real-Time Graph Intelligence for Mule Account Detection.pptx
+10:42:10 [WARNING] agent.file_monitor: DECOY FILE ACCESSED: C:\Users\Anmol/Documents\passwords.txt
+10:42:10 [CRITICAL] agent.deception_engine: 🚨 HONEYPOT TRIGGERED: C:\Users\Anmol/Documents\passwords.txt (modified/accessed)
+10:42:10 [WARNING] agent.ransomware_detection: High-entropy file found (7.90): C:\Users\Anmol/Downloads\task1.xlsx
+10:42:10 [WARNING] agent.ransomware_detection: High-entropy file found (7.92): C:\Users\Anmol/Downloads\apache-maven-3.9.11-bin\apache-maven-3.9.11\lib\wagon-http-shared-3.5.3.jar
+10:42:15 [WARNING] agent.sender: Heartbeat error: HTTPConnectionPool(host='127.0.0.1', port=8000): Read timed out. (read timeout=10)
+10:42:24 [WARNING] agent.file_monitor: High-risk file modification — path=C:\Users\Anmol/Downloads\DBMSPROJ-main\frontend\node_modules\@typescript-eslint\typescript-estree\_ts3.4\dist\parseSettings\getProjectConfigFiles.d.ts entropy=4.84 burst=True
+10:42:37 [INFO] agent.main: ============================================================
+10:42:37 [INFO] agent.main:   SentinelCrypt EDR — Endpoint Agent
+10:42:37 [INFO] agent.main:   Device ID : ANMOLROG
+10:42:37 [INFO] agent.main:   Backend   : http://127.0.0.1:8000/api
+10:42:37 [INFO] agent.main: ============================================================
+10:42:37 [INFO] agent.main: Starting AgentSender …
+10:42:46 [WARNING] agent.file_monitor: High-risk file modification — path=C:\Users\Anmol/Downloads\secret.docx.locked entropy=7.99 burst=False
+10:42:47 [WARNING] agent.sender: Registration attempt 1 failed: HTTPConnectionPool(host='127.0.0.1', port=8000): Read timed out. (read timeout=10)
+10:42:55 [WARNING] agent.sender: Heartbeat error: HTTPConnectionPool(host='127.0.0.1', port=8000): Read timed out. (read timeout=10)
+10:42:59 [WARNING] urllib3.connectionpool: Retrying (Retry(total=9, connect=2, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:02 [WARNING] urllib3.connectionpool: Retrying (Retry(total=8, connect=1, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:05 [WARNING] agent.network_monitor: SUSPICIOUS CONNECTION: 192.168.1.40:55727 → 192.168.1.34:8080 (proc=System Idle Process)
+10:43:06 [WARNING] urllib3.connectionpool: Retrying (Retry(total=7, connect=0, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:10 [WARNING] urllib3.connectionpool: Retrying (Retry(total=9, connect=2, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:13 [WARNING] urllib3.connectionpool: Retrying (Retry(total=8, connect=1, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:17 [WARNING] urllib3.connectionpool: Retrying (Retry(total=7, connect=0, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:21 [WARNING] urllib3.connectionpool: Retrying (Retry(total=9, connect=2, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:24 [WARNING] urllib3.connectionpool: Retrying (Retry(total=8, connect=1, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:28 [WARNING] urllib3.connectionpool: Retrying (Retry(total=9, connect=2, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/devices/ANMOLROG/heartbeat
+10:43:28 [WARNING] urllib3.connectionpool: Retrying (Retry(total=7, connect=0, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:31 [WARNING] urllib3.connectionpool: Retrying (Retry(total=8, connect=1, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/devices/ANMOLROG/heartbeat
+10:43:33 [WARNING] urllib3.connectionpool: Retrying (Retry(total=9, connect=2, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:35 [WARNING] urllib3.connectionpool: Retrying (Retry(total=7, connect=0, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/devices/ANMOLROG/heartbeat
+10:43:36 [WARNING] urllib3.connectionpool: Retrying (Retry(total=8, connect=1, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:37 [WARNING] agent.sender: Heartbeat error: HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/devices/ANMOLROG/heartbeat (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+10:43:40 [WARNING] urllib3.connectionpool: Retrying (Retry(total=7, connect=0, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:43 [WARNING] agent.ransomware_detection: High-entropy file found (7.48): C:\Users\Anmol/Downloads\DBMSPROJ-main\frontend\node_modules\serve-index\public\icons\page_paste.png
+10:43:43 [WARNING] agent.file_monitor: High-risk file modification — path=C:\Users\Anmol/Downloads\DBMSPROJ-main\frontend\node_modules\serve-index\public\icons\page_paste.png entropy=7.48 burst=False
+10:43:44 [WARNING] urllib3.connectionpool: Retrying (Retry(total=9, connect=2, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:47 [WARNING] urllib3.connectionpool: Retrying (Retry(total=8, connect=1, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/threats/logs
+10:43:53 [INFO] agent.main: ============================================================
+10:43:53 [INFO] agent.main:   SentinelCrypt EDR — Endpoint Agent
+10:43:53 [INFO] agent.main:   Device ID : ANMOLROG
+10:43:53 [INFO] agent.main:   Backend   : http://127.0.0.1:8000/api
+10:43:53 [INFO] agent.main: ============================================================
+10:43:53 [INFO] agent.main: Starting AgentSender …
+10:43:55 [WARNING] urllib3.connectionpool: Retrying (Retry(total=9, connect=2, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/devices/register
+10:43:58 [WARNING] urllib3.connectionpool: Retrying (Retry(total=8, connect=1, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/devices/register
+10:44:02 [WARNING] urllib3.connectionpool: Retrying (Retry(total=7, connect=0, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")': /api/devices/register
+10:44:04 [WARNING] agent.sender: Registration attempt 1 failed: HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/devices/register (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+10:57:50 [INFO] agent.main: ============================================================
+10:57:50 [INFO] agent.main:   SentinelCrypt EDR — Endpoint Agent
+10:57:50 [INFO] agent.main:   Device ID : ANMOLROG
+10:57:50 [INFO] agent.main:   Backend   : http://127.0.0.1:8000/api
+10:57:50 [INFO] agent.main: ============================================================
+10:57:50 [INFO] agent.main: Starting AgentSender …
+10:57:54 [INFO] agent.sender: Device registered: ANMOLROG
+10:57:54 [INFO] agent.sender: AgentSender started (device_id=ANMOLROG)
+10:57:54 [INFO] agent.main: Starting File Monitor …
+10:57:54 [INFO] agent.file_monitor: Watching: C:\Users\Anmol/Documents
+10:57:54 [INFO] agent.file_monitor: Watching: C:\Users\Anmol/Desktop
+10:57:54 [INFO] agent.file_monitor: Watching: C:\Users\Anmol/Downloads
+10:57:54 [INFO] agent.file_monitor: File monitor started (3 paths)
+10:57:54 [INFO] agent.main: Starting Deception Engine …
+10:57:54 [INFO] agent.deception_engine: Deception engine started — monitoring 5 decoy files in C:\Users\Anmol/Documents
+10:57:54 [INFO] agent.main: Starting Process Monitor …
+10:57:54 [INFO] agent.process_monitor: Process monitor started — tracking 375 existing processes
+10:57:54 [INFO] agent.main: Starting USB Monitor …
+10:57:54 [INFO] agent.usb_monitor: USB monitor started (platform=Windows)
+10:57:54 [INFO] agent.main: Starting Network Collector …
+10:57:54 [INFO] agent.network_monitor: Network collector started — 145 existing connections snapshotted
+10:57:54 [INFO] agent.main: Starting Wi-Fi Scanner …
+10:57:54 [INFO] agent.wifi_scanner: Initializing Windows Wi-Fi adapter (netsh)
+10:57:54 [INFO] agent.wifi_scanner: Wi-Fi scanner started (interval=60s)
+10:57:54 [INFO] agent.main: Starting Ransomware Background Scan …
+10:57:54 [INFO] agent.ransomware_detection: Background ransomware scan starting …
+10:57:54 [INFO] agent.main: Starting Remote Command Processor …
+10:57:54 [INFO] agent.command_processor: Command polling loop started (interval=10s)
+10:57:54 [INFO] agent.main: Starting Malware Collector (Adapter) …
+10:57:54 [INFO] agent.collector.malware: Malware collector started (interval=300s)
+10:57:54 [INFO] agent.main: Starting Firewall Collector (Adapter) …
+10:57:54 [INFO] agent.collector.firewall: Firewall collector started (interval=120s)
+10:57:54 [INFO] agent.main: Starting Browser Collector (Adapter) …
+10:57:54 [INFO] agent.collector.browser: Browser collector started (interval=60s)
+10:57:54 [WARNING] agent.usb_monitor: wmi/pywin32 not installed — falling back to polling USB monitor
+10:57:54 [INFO] agent.main: Starting Privacy Collector (Adapter) …
+10:57:54 [INFO] agent.usb_monitor: USB polling watcher started (fallback mode)
+10:57:54 [INFO] agent.collector.privacy: Privacy collector started (interval=600s)
+10:57:54 [INFO] agent.main: All agent modules started.  Press Ctrl+C to stop.
+10:57:56 [WARNING] agent.file_monitor: High-risk file modification — path=C:\Users\Anmol/Downloads\invoice.docx.locked entropy=7.99 burst=False
+10:57:58 [WARNING] agent.ransomware_detection: High-entropy file found (7.89): C:\Users\Anmol/Downloads\MuleNet — Real-Time Graph Intelligence for Mule Account Detection.pptx
+10:57:59 [WARNING] agent.ransomware_detection: High-entropy file found (7.90): C:\Users\Anmol/Downloads\task1.xlsx
+10:57:59 [WARNING] agent.ransomware_detection: High-entropy file found (7.92): C:\Users\Anmol/Downloads\apache-maven-3.9.11-bin\apache-maven-3.9.11\lib\wagon-http-shared-3.5.3.jar
+10:58:04 [WARNING] agent.sender: Heartbeat error: HTTPConnectionPool(host='127.0.0.1', port=8000): Read timed out. (read timeout=10)

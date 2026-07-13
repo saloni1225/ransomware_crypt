@@ -4,8 +4,8 @@
 # Core HTTP client
 requests==2.32.3
 
-# File system monitoring
-watchdog==4.0.0
+# File system monitoring (>=6.0 required for Python 3.13 threading compatibility)
+watchdog>=6.0.0
 
 # Process & network monitoring
 psutil==5.9.8

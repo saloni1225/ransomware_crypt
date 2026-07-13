@@ -123,7 +123,7 @@ export default function NetworkMonitor() {
               display: 'flex', alignItems: 'center', gap: '6px', opacity: simulating ? 0.7 : 1,
             }}
           >
-            <Zap size={14} /> Simulate Traffic
+            <Zap size={14} /> Load Demo Data
           </button>
         </div>
       </div>
@@ -198,7 +198,7 @@ export default function NetworkMonitor() {
               {loading ? (
                 <tr><td colSpan={9} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={9} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No connections. Simulate traffic to begin.</td></tr>
+                <tr><td colSpan={9} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No connections yet. Real agent connections appear here automatically — or load demo data.</td></tr>
               ) : (
                 filtered.map(conn => {
                   const conf = STATUS_CONFIG[conn.status] || STATUS_CONFIG.normal;
